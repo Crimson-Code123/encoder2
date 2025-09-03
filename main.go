@@ -10,7 +10,13 @@ import (
 )
 
 func main() {
-
+	f := NewFormula()
+	f.AddClause(NewClause([]int{1, -2, -3, 4}))
+	f.AddClause(NewClause([]int{55, -33, 22, 11}))
+	f.VarNames["123"] = 2
+	writeDIMACS("example.dimacs", f)
+	x := readDIMACS("example.dimacs")
+	fmt.Println(x)
 }
 
 func readDIMACS(name string) Formula {
@@ -32,17 +38,23 @@ func readDIMACS(name string) Formula {
 			i += 1
 		} else {
 			if y[0] == "c" { //c varname varid
-				r, _ := strconv.Atoi(y[2])
+				r, err := strconv.Atoi(y[2])
+				if err != nil {
+					fmt.Println(err)
+				}
 				f.VarNames[y[1]] = r
 			} else {
 				c := Clause{}
-				for z := 0; z < len(y); z++ {
-					r, _ := strconv.Atoi(y[z])
+				for z := 0; z < len(y)-1; z++ {
+					r, err := strconv.Atoi(y[z])
+					if err != nil {
+						fmt.Println(err)
+					}
 					c.Literals = append(c.Literals, r)
 				}
 				f.Clauses = append(f.Clauses, c)
 			}
-
+			i += 1
 		}
 	}
 	return f
@@ -54,7 +66,7 @@ func writeDIMACS(name string, formula Formula) {
 		log.Println(err)
 	}
 	defer file.Close()
-	s := fmt.Sprintf("p cnf %d %d\n", formula.VarCount(), len(formula.Clauses))
+	s := fmt.Sprintf("p cnf %d %d \n", formula.VarCount(), len(formula.Clauses))
 	io.WriteString(file, s)
 	for i := 0; i < len(formula.Clauses); i++ {
 		for j := 0; j < len(formula.Clauses[i].Literals); j++ {
@@ -64,18 +76,26 @@ func writeDIMACS(name string, formula Formula) {
 		io.WriteString(file, "0\n")
 	}
 	for x, y := range formula.VarNames {
-		s := fmt.Sprintf("c %s %d\n", x, y)
+		s := fmt.Sprintf("c %s %d \n", x, y)
 		io.WriteString(file, s)
 	}
 }
 
-type Clause struct {
-	Literals []int
-}
+/*
+ AdderType: Ripple carry
+ MultiAdderType: Two operand
+ PB Method: Sequential counter
+*/
 
 type Formula struct {
 	Clauses  []Clause
 	VarNames map[string]int
+	VarID    int
+	varCount int
+}
+
+type Clause struct {
+	Literals []int
 }
 
 func NewFormula() Formula {
@@ -84,13 +104,98 @@ func NewFormula() Formula {
 	return f
 }
 
-func (f *Formula) NewVars() {
+func NewClause(vars []int) Clause {
+	c := Clause{}
+	c.Literals = vars
+	return c
+}
+
+func (f *Formula) Add2(z []int, x []int, y []int, n int) {
+	r := n - 1
+	c := make([]int, r)
+	f.NewVars(c, r, "")
+
+	f.HalfAdder(c, z, x, y, 1)
+
+	f.FullAdder(c+1, z+1, x+1, y+1, c, n-2)
+
+	f.Xor3(z+n-1, x+n-1, y+n-1, c+n-2, 1)
 
 }
 
-func (f *Formula) AddClause() {
+func (f *Formula) Add3() {
 
 }
+
+func (f *Formula) Add4() {
+
+}
+
+func (f *Formula) Add5() {
+
+}
+
+func (f *Formula) HalfAdder(c []int, s []int, x []int, y []int, n int) {
+	f.Xor2(s, x, y, n)
+	f.And2(c, x, y, n)
+}
+
+func (f *Formula) FullAdder(c []int, s []int, x []int, y []int, t []int, n int) {
+	f.Xor3(s, x, y, t, n)
+	f.Maj3(c, x, y, t, n)
+}
+
+func (f *Formula)Or2(z []int, x []int, y []int, n int) {
+
+}
+
+func (f *Formula) And2(z []int, x []int, y []int, n int) {
+
+}
+
+func (f *Formula) Maj3(z []int, x []int, y []int, t []int, n int) {
+	for i := 0; i < n; i++ {
+		f.AddClause(NewClause([]int{-z[i], x[i], y[i]}))
+		f.AddClause(NewClause([]int{-z[i], x[i], t[i]}))
+		f.AddClause(NewClause([]int{-z[i], y[i], t[i]}))
+		f.AddClause(NewClause([]int{z[i], -y[i], -t[i]}))
+		f.AddClause(NewClause([]int{z[i], -x[i], -t[i]}))
+		f.AddClause(NewClause([]int{z[i], -x[i], -y[i]}))
+	}
+}
+
+func (f *Formula) Xor2(z []int, x []int, y []int, n int) {
+	for i := 0; i < n; i++ {
+		f.AddClause(NewClause([]int{-z[i], -x[i]}))
+	}
+}
+
+func (f *Formula) Xor3(z []int, x []int, y []int, t []int, n int) {
+	for i := 0; i < n; i++ {
+
+	}
+}
+
+func (f *Formula) NewVars(ivec []int, vars int, name string) {
+	for i := 0; i < vars; i++ {
+		f.VarID += 1
+		ivec[i] = f.VarID
+	}
+	if name != "" {
+		f.VarNames[name] = ivec[0]
+	}
+	f.varCount += vars
+}
+
+func (f *Formula) AddClause(c Clause) {
+	f.Clauses = append(f.Clauses, c)
+}
+
+// func (f *Formula)AddClause(c []int) {
+// 	x := Clause{}
+// 	x.Literals = c
+// 	f.Clauses = append(f.Clauses, )
+// }
 
 func (f *Formula) FixedValue() {
 
@@ -107,5 +212,6 @@ func (f *Formula) VarCount() int {
 			varCount += 1
 		}
 	}
+	f.varCount = varCount //
 	return varCount
 }
