@@ -14,8 +14,8 @@ func main() {
 	f.AddClause(NewClause([]int{1, -2, -3, 4}))
 	f.AddClause(NewClause([]int{55, -33, 22, 11}))
 	f.VarNames["123"] = 2
-	writeDIMACS("example.dimacs", f)
-	x := readDIMACS("example.dimacs")
+	// writeDIMACS("out.dimacs", f)
+	x := readDIMACS("out.dimacs")
 	fmt.Println(x)
 }
 
@@ -34,13 +34,13 @@ func readDIMACS(name string) Formula {
 	for x := range strings.Lines(string(data)) {
 		y := strings.Split(x, " ")
 		if i == 0 { //p cnf varcount clausecount
-			fmt.Printf("Read file with %s Vars and %s Clauses\n", y[2], y[3])
+			fmt.Printf("Read file with %s Vars and %s Clauses\n", y[2], strings.Split(y[3], "\n")[0])
 			i += 1
 		} else {
 			if y[0] == "c" { //c varname varid
-				r, err := strconv.Atoi(y[2])
+				r, err := strconv.Atoi(strings.Split(y[2], "\n")[0])
 				if err != nil {
-					fmt.Println(err)
+					fmt.Println("Named var: ", err)
 				}
 				f.VarNames[y[1]] = r
 			} else {
@@ -117,9 +117,9 @@ func (f *Formula) Add2(z []int, x []int, y []int, n int) {
 
 	f.HalfAdder(c, z, x, y, 1)
 
-	f.FullAdder(c+1, z+1, x+1, y+1, c, n-2)
+	// f.FullAdder(c+1, z+1, x+1, y+1, c, n-2)
 
-	f.Xor3(z+n-1, x+n-1, y+n-1, c+n-2, 1)
+	// f.Xor3(z+n-1, x+n-1, y+n-1, c+n-2, 1)
 
 }
 
