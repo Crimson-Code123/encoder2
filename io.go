@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-/* IO read/write for DIMACS.  */
+/* IO read/write for DIMACS. The writer does not output named variables lexicographically */
 
 func readDIMACS(name string) Formula {
 	file, err := os.OpenFile(name, os.O_RDWR, 0666)
@@ -68,7 +68,21 @@ func writeDIMACS(name string, formula Formula) {
 		io.WriteString(file, "0\n")
 	}
 	for x, y := range formula.VarNames {
-		s := fmt.Sprintf("c %s %d \n", x, y)
+		s := fmt.Sprintf("c %s %d\n", x, y)
 		io.WriteString(file, s)
 	}
 }
+
+func readFile(name string) []byte {
+	file, err := os.OpenFile(name, os.O_RDWR, 0666)
+	if err != nil {
+		log.Println(err)
+	}
+	defer file.Close()
+	data, err := io.ReadAll(file)
+	if err != nil {
+		log.Println(err)
+	}
+	return data
+}
+

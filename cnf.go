@@ -1,7 +1,8 @@
 package main
 
-/* CNF-related stuff */
+import "fmt"
 
+/* CNF-related stuff */
 
 /*
  AdderType: Ripple carry
@@ -160,8 +161,6 @@ func (f *Formula) VarCount() int {
 	f.varCount = varCount //
 	return varCount
 }
-
-
 
 /*
 value: binary encoded into sat variables
@@ -627,4 +626,3 @@ Newvar: varid: 17379 | x: 17361 | x[i]: 17379
 Newvar: varid: 17380 | x: 17361 | x[i]: 17380
 Newvar: varid: 17381 | x: 17361 | x[i]: 17381
 */
-
