@@ -14,15 +14,3 @@ func main() {
 	
 }
 
-
-type Hash struct {
-	Rounds     int
-	UseIVBlock bool
-	InputSize  int
-	OutputSize int
-	Form       Formula
-	w          []byte
-	chain      []byte
-	out        []byte
-	in         []byte
-}

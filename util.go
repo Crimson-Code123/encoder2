@@ -11,3 +11,5 @@ func sha256sum(data string) string {
 	h.Write([]byte(data))
 	return string(h.Sum([]byte(data)))
 }
+
+
