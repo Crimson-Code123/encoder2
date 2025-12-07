@@ -4,7 +4,8 @@ package main
 
 
 func (f *Formula)NewSHA256() {
-	f.NewVars()
+	// f.NewVars()
+	
 }
 
 func (h *Hash)Encode() {
@@ -14,7 +15,7 @@ func (h *Hash)Encode() {
 	}
 	//mixing w
 	for i := 16; i < 64; i++ {
-
+		
 	}
 	//
 	for i := 0; i < 64; i++ {
@@ -34,14 +35,15 @@ func NewSHA256(input string) Hash {
 	for i := 0; i < len(input); i++ {
 		h.in[i] = byte(input[i])
 	}
-	
+	h.InputSize = len(input)
+	h.OutputSize = 8
+	return h
 }
 
 // type SHA256 struct {
 // 	h Hash
 
 // }
-
 
 var _K = []uint32{
 	0x428a2f98,

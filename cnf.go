@@ -13,7 +13,7 @@ import "fmt"
 type Formula struct {
 	Clauses  []Clause
 	VarNames map[string]int
-	Vars     map[int][]int
+	Vars     map[int]int //
 	VarID    int
 	varCount int
 }
@@ -22,90 +22,14 @@ type Clause struct {
 	Literals []int
 }
 
-type Var struct {
-	Name    string
-	Value   uint
-	Length  int //32 bit
-	ID      int
-	BoolVec []bool
-}
+/* Encode input integer as true-false values for CNF */
+func (f *Formula) AssignVariables(x uint) {
+	for x := 0; x < 32; x++ {
 
-func NewFormula() Formula {
-	f := Formula{}
-	f.VarNames = make(map[string]int)
-	return f
-}
-
-func NewClause(vars []int) Clause {
-	c := Clause{}
-	c.Literals = vars
-	return c
-}
-
-func (f *Formula) Add2(z []int, x []int, y []int, n int) {
-	r := n - 1
-	c := make([]int, r)
-	f.NewVars(c, r, "")
-
-	f.HalfAdder(c, z, x, y, 1)
-
-	f.FullAdder(c[1:], z[1:], x[1:], y[1:], c, n-2)
-
-	f.Xor3(z, x, y, c, 1) //
-
-}
-
-func (f *Formula) Add3() {
-
-}
-
-func (f *Formula) Add4() {
-
-}
-
-func (f *Formula) Add5() {
-
-}
-
-func (f *Formula) HalfAdder(c []int, s []int, x []int, y []int, n int) {
-	f.Xor2(s, x, y, n)
-	f.And2(c, x, y, n)
-}
-
-func (f *Formula) FullAdder(c []int, s []int, x []int, y []int, t []int, n int) {
-	f.Xor3(s, x, y, t, n)
-	f.Maj3(c, x, y, t, n)
-}
-
-func (f *Formula) Or2(z []int, x []int, y []int, n int) {
-
-}
-
-func (f *Formula) And2(z []int, x []int, y []int, n int) {
-
-}
-
-func (f *Formula) Maj3(z []int, x []int, y []int, t []int, n int) {
-	for i := 0; i < n; i++ {
-		f.AddClause(NewClause([]int{-z[i], x[i], y[i]}))
-		f.AddClause(NewClause([]int{-z[i], x[i], t[i]}))
-		f.AddClause(NewClause([]int{-z[i], y[i], t[i]}))
-		f.AddClause(NewClause([]int{z[i], -y[i], -t[i]}))
-		f.AddClause(NewClause([]int{z[i], -x[i], -t[i]}))
-		f.AddClause(NewClause([]int{z[i], -x[i], -y[i]}))
 	}
 }
 
-func (f *Formula) Xor2(z []int, x []int, y []int, n int) {
-	for i := 0; i < n; i++ {
-		f.AddClause(NewClause([]int{-z[i], -x[i], -y[i]}))
-		f.AddClause(NewClause([]int{z[i], -x[i], y[i]}))
-		f.AddClause(NewClause([]int{z[i], x[i], -y[i]}))
-		f.AddClause(NewClause([]int{-z[i], x[i], y[i]}))
-	}
-}
-
-func (f *Formula) Xor3(z []int, x []int, y []int, t []int, n int) {
+func (f *Formula) NewVarsAlt(input uint, n int) {
 	for i := 0; i < n; i++ {
 
 	}
@@ -122,14 +46,16 @@ func (f *Formula) NewVars(ivec []int, vars int, name string) {
 	f.varCount += vars
 }
 
-func (f *Formula) AddClause(c Clause) {
-	f.Clauses = append(f.Clauses, c)
+func NewFormula() Formula {
+	f := Formula{}
+	f.VarNames = make(map[string]int)
+	return f
 }
 
-func (f *Formula) AddClauseVec(c []int) {
-	x := Clause{}
-	x.Literals = c
-	f.Clauses = append(f.Clauses, x)
+func NewClause(vars []int) Clause {
+	c := Clause{}
+	c.Literals = vars
+	return c
 }
 
 func (f *Formula) FixedValue(z []int, value int, n int) {
@@ -140,9 +66,165 @@ func (f *Formula) FixedValue(z []int, value int, n int) {
 		} else {
 			x = (value >> i) & 1
 		}
-		fmt.Println(x, -x)
-		f.AddClause(NewClause([]int{int(x)}))
+		fmt.Println(x, -x) //
+		f.AddClauseVec([]int{int(x)})
 	}
+}
+
+/* Functions */
+
+func (f *Formula) Add2(z []int, x []int, y []int, n int) {
+	r := n - 1
+	c := make([]int, r)
+	f.NewVars(c, r, "")
+	f.HalfAdder(c, z, x, y, 1)
+	f.FullAdder(c[1:], z[1:], x[1:], y[1:], c, n-2)
+	f.Xor3(z, x, y, c, 1) //
+}
+
+func (f *Formula) Add3(z []int, a []int, b []int, c []int, n int) {
+	t0 := make([]int, n)
+	f.NewVars(t0, n, "")
+	f.Add2(t0, a, b, n)
+	t1 := make([]int, n)
+	f.NewVars(t1, n, "")
+	f.Add2(z, c, t0, n)
+}
+
+func (f *Formula) Add4(z []int, a []int, b []int, c []int, d []int, n int) {
+
+}
+
+func (f *Formula) Add5(z []int, a []int, b []int, c []int, d []int, e []int, n int) {
+
+}
+
+func (f *Formula) HalfAdder(c []int, s []int, x []int, y []int, n int) {
+	f.Xor2(s, x, y, n)
+	f.And2(c, x, y, n)
+}
+
+func (f *Formula) FullAdder(c []int, s []int, x []int, y []int, t []int, n int) {
+	f.Xor3(s, x, y, t, n)
+	f.Maj3(c, x, y, t, n)
+}
+
+func (f *Formula) And2(z []int, x []int, y []int, n int) {
+	for i := 0; i < n; i++ {
+		f.AddClauseVec([]int{z[i], -x[i], -y[i]})
+		f.AddClauseVec([]int{-z[i], x[i]})
+		f.AddClauseVec([]int{-z[i], y[i]})
+	}
+}
+
+func (f *Formula) Or2(z []int, x []int, y []int, n int) {
+	for i := 0; i < n; i++ {
+		f.AddClauseVec([]int{-z[i], x[i], y[i]})
+		f.AddClauseVec([]int{z[i], -x[i]})
+		f.AddClauseVec([]int{z[i], -y[i]})
+	}
+}
+
+func (f *Formula) Maj3(z []int, x []int, y []int, t []int, n int) {
+	for i := 0; i < n; i++ {
+		f.AddClauseVec([]int{-z[i], x[i], y[i]})
+		f.AddClauseVec([]int{-z[i], x[i], t[i]})
+		f.AddClauseVec([]int{-z[i], y[i], t[i]})
+		f.AddClauseVec([]int{z[i], -y[i], -t[i]})
+		f.AddClauseVec([]int{z[i], -x[i], -t[i]})
+		f.AddClauseVec([]int{z[i], -x[i], -y[i]})
+	}
+}
+
+func (f *Formula)If(z []int, x []int, y []int, t []int, n int) {
+	for i := 0; i < n; i++ {
+		f.AddClauseVec([]int{-z[i], x[i], t[i]})
+		f.AddClauseVec([]int{-z[i], -x[i], y[i]})
+		f.AddClauseVec([]int{z[i], x[i], -t[i]})
+		f.AddClauseVec([]int{z[i], -x[i], -y[i]})
+	}
+}
+
+func (f *Formula) Xor2(z []int, x []int, y []int, n int) {
+	for i := 0; i < n; i++ {
+		f.AddClauseVec([]int{-z[i], -x[i], -y[i]})
+		f.AddClauseVec([]int{z[i], -x[i], y[i]})
+		f.AddClauseVec([]int{z[i], x[i], -y[i]})
+		f.AddClauseVec([]int{-z[i], x[i], y[i]})
+	}
+}
+
+func (f *Formula) Xor3(z []int, x []int, y []int, t []int, n int) {
+	for i := 0; i < n; i++ {
+
+	}
+}
+
+func (f *Formula) Xor4(z []int, a []int, b []int, c []int, d []int, n int) {
+	for i := 0; i < n; i++ {
+		
+	}
+}
+
+func (f *Formula)Sigma0(z []int, x []int) {
+	r1 := [32]int{}
+	r2 := [32]int{}
+	r3 := [32]int{}
+	_ = r1
+	_ = r2
+	_ = r3
+	// f.RotateL()
+}
+
+func (f *Formula)Sigma1(z []int, x []int) {
+	r1 := [32]int{}
+	r2 := [32]int{}
+	r3 := [32]int{}
+	_ = r1
+	_ = r2
+	_ = r3
+
+}
+
+func (f *Formula) Equal(z []int, x []int, n int) {
+	for i := 0; i < n; i++ {
+		f.AddClauseVec([]int{-z[i], x[i]})
+		f.AddClauseVec([]int{z[i], -x[i]})
+	}
+}
+
+func (f *Formula) NEqual(z []int, x []int, n int) {
+	for i := 0; i < n; i++ {
+		f.AddClauseVec([]int{z[i], x[i]})
+		f.AddClauseVec([]int{-z[i], -x[i]})
+	}
+}
+
+func (f *Formula)Assign(z []int, x []int, n int) {
+	f.RotateL(z, x, 0, n)
+}
+
+func (f *Formula)RotateL(z []int, x []int, p int, n int) []int {
+	r := make([]int, 0)
+	for i := 0; i < n; i++ {
+		z[i] = x[(i + n - p) % n]
+		r = append(r, z[i])
+	}
+	return r
+}
+
+func (f *Formula)RotateR(z []int, x []int, p int, n int) []int {
+	return f.RotateL(z, x, n-p, n)
+}
+
+func (f *Formula) AddClause(c Clause) {
+	f.Clauses = append(f.Clauses, c)
+}
+
+func (f *Formula) AddClauseVec(c []int) {
+	x := Clause{}
+	x.Literals = c
+	f.Clauses = append(f.Clauses, x)
 }
 
 func (f *Formula) AppendFormula(fx Formula) {
@@ -160,6 +242,28 @@ func (f *Formula) VarCount() int {
 	}
 	f.varCount = varCount //
 	return varCount
+}
+
+
+func (f *Formula)AtMostK(x []int, n int, k uint) {
+
+}
+
+func (f *Formula)AtLeastK(x []int, n int, k uint) {
+	if k == 1 {
+		f.AddClauseVec(x)
+		return
+	}
+	y := make([]int, n)
+	for i := 0; i < n; i++ {
+		y[i] = -x[i]
+	}
+	f.AtMostK(y, n, uint(n)-k)
+}
+
+func (f *Formula)ExactlyK(x []int, n int, k uint) {
+	f.AtLeastK(x, n, k)
+	f.AtMostK(x, n, k)
 }
 
 /*
