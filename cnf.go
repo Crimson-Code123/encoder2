@@ -35,15 +35,20 @@ func (f *Formula) NewVarsAlt(input uint, n int) {
 	}
 }
 
-func (f *Formula) NewVars(ivec []int, vars int, name string) {
+/*  */
+func (f *Formula) NewVars(ivec []int, vars int, name string) /* []int */ {
+	// x := make([]int, vars)
 	for i := 0; i < vars; i++ {
 		f.VarID += 1
 		ivec[i] = f.VarID
+		// x = append(x, )
 	}
 	if name != "" {
 		f.VarNames[name] = ivec[0]
+		// f.VarNames[name] = x[0]
 	}
 	f.varCount += vars
+	// return x
 }
 
 func NewFormula() Formula {
@@ -92,11 +97,25 @@ func (f *Formula) Add3(z []int, a []int, b []int, c []int, n int) {
 }
 
 func (f *Formula) Add4(z []int, a []int, b []int, c []int, d []int, n int) {
-
+	t0 := make([]int, n)
+	f.NewVars(t0, n, "")
+	f.Add2(t0, a, b, n)
+	t1 := make([]int, n)
+	f.NewVars(t1, n, "")
+	f.Add2(t1, c, d, n)
+	f.Add2(z, t0, t1, n)
 }
 
 func (f *Formula) Add5(z []int, a []int, b []int, c []int, d []int, e []int, n int) {
-
+	t0 := make([]int, n)
+	f.NewVars(t0, n, "")
+	f.Add2(t0, a, b, n)
+	t1 := make([]int, n)
+	f.NewVars(t1, n, "")
+	f.Add2(t1, c, d, n)
+	t2 := make([]int, n)
+	f.NewVars(t2, n, "")
+	f.Add2(t2, t0, t1, n)
 }
 
 func (f *Formula) HalfAdder(c []int, s []int, x []int, y []int, n int) {
@@ -136,7 +155,7 @@ func (f *Formula) Maj3(z []int, x []int, y []int, t []int, n int) {
 	}
 }
 
-func (f *Formula)If(z []int, x []int, y []int, t []int, n int) {
+func (f *Formula) If(z []int, x []int, y []int, t []int, n int) {
 	for i := 0; i < n; i++ {
 		f.AddClauseVec([]int{-z[i], x[i], t[i]})
 		f.AddClauseVec([]int{-z[i], -x[i], y[i]})
@@ -156,17 +175,39 @@ func (f *Formula) Xor2(z []int, x []int, y []int, n int) {
 
 func (f *Formula) Xor3(z []int, x []int, y []int, t []int, n int) {
 	for i := 0; i < n; i++ {
-
+		f.AddClauseVec([]int{z[i], -x[i], -y[i], -t[i]})
+		f.AddClauseVec([]int{-z[i], -x[i], -y[i], t[i]})
+		f.AddClauseVec([]int{-z[i], -x[i], y[i], -t[i]})
+		f.AddClauseVec([]int{z[i], -x[i], y[i], t[i]})
+		f.AddClauseVec([]int{-z[i], x[i], -y[i], -t[i]})
+		f.AddClauseVec([]int{z[i], x[i], -y[i], t[i]})
+		f.AddClauseVec([]int{z[i], x[i], y[i], -t[i]})
+		f.AddClauseVec([]int{-z[i], x[i], y[i], t[i]})
 	}
 }
 
 func (f *Formula) Xor4(z []int, a []int, b []int, c []int, d []int, n int) {
 	for i := 0; i < n; i++ {
-		
+		f.AddClauseVec([]int{-z[i], -a[i], -b[i], -c[i], -d[i]})
+		f.AddClauseVec([]int{z[i], -a[i], -b[i], -c[i], d[i]})
+		f.AddClauseVec([]int{z[i], -a[i], -b[i], c[i], -d[i]})
+		f.AddClauseVec([]int{-z[i], -a[i], -b[i], c[i], d[i]})
+		f.AddClauseVec([]int{z[i], -a[i], b[i], -c[i], -d[i]})
+		f.AddClauseVec([]int{-z[i], -a[i], b[i], -c[i], d[i]})
+		f.AddClauseVec([]int{-z[i], -a[i], b[i], c[i], -d[i]})
+		f.AddClauseVec([]int{z[i], -a[i], b[i], c[i], d[i]})
+		f.AddClauseVec([]int{z[i], a[i], -b[i], -c[i], -d[i]})
+		f.AddClauseVec([]int{-z[i], a[i], -b[i], -c[i], d[i]})
+		f.AddClauseVec([]int{-z[i], a[i], -b[i], c[i], -d[i]})
+		f.AddClauseVec([]int{z[i], a[i], -b[i], c[i], d[i]})
+		f.AddClauseVec([]int{-z[i], a[i], b[i], -c[i], -d[i]})
+		f.AddClauseVec([]int{z[i], a[i], b[i], -c[i], d[i]})
+		f.AddClauseVec([]int{z[i], a[i], b[i], c[i], -d[i]})
+		f.AddClauseVec([]int{-z[i], a[i], b[i], c[i], d[i]})
 	}
 }
 
-func (f *Formula)Sigma0(z []int, x []int) {
+func (f *Formula) Sigma0(z []int, x []int) {
 	r1 := [32]int{}
 	r2 := [32]int{}
 	r3 := [32]int{}
@@ -176,7 +217,7 @@ func (f *Formula)Sigma0(z []int, x []int) {
 	// f.RotateL()
 }
 
-func (f *Formula)Sigma1(z []int, x []int) {
+func (f *Formula) Sigma1(z []int, x []int) {
 	r1 := [32]int{}
 	r2 := [32]int{}
 	r3 := [32]int{}
@@ -200,20 +241,20 @@ func (f *Formula) NEqual(z []int, x []int, n int) {
 	}
 }
 
-func (f *Formula)Assign(z []int, x []int, n int) {
-	f.RotateL(z, x, 0, n)
+func (f *Formula) Assign(z []int, x []int, n int) []int {
+	return f.RotateL(z, x, 0, n)
 }
 
-func (f *Formula)RotateL(z []int, x []int, p int, n int) []int {
+func (f *Formula) RotateL(z []int, x []int, p int, n int) []int {
 	r := make([]int, 0)
 	for i := 0; i < n; i++ {
-		z[i] = x[(i + n - p) % n]
+		z[i] = x[(i+n-p)%n]
 		r = append(r, z[i])
 	}
 	return r
 }
 
-func (f *Formula)RotateR(z []int, x []int, p int, n int) []int {
+func (f *Formula) RotateR(z []int, x []int, p int, n int) []int {
 	return f.RotateL(z, x, n-p, n)
 }
 
@@ -244,12 +285,11 @@ func (f *Formula) VarCount() int {
 	return varCount
 }
 
-
-func (f *Formula)AtMostK(x []int, n int, k uint) {
+func (f *Formula) AtMostK(x []int, n int, k uint) {
 
 }
 
-func (f *Formula)AtLeastK(x []int, n int, k uint) {
+func (f *Formula) AtLeastK(x []int, n int, k uint) {
 	if k == 1 {
 		f.AddClauseVec(x)
 		return
@@ -261,7 +301,7 @@ func (f *Formula)AtLeastK(x []int, n int, k uint) {
 	f.AtMostK(y, n, uint(n)-k)
 }
 
-func (f *Formula)ExactlyK(x []int, n int, k uint) {
+func (f *Formula) ExactlyK(x []int, n int, k uint) {
 	f.AtLeastK(x, n, k)
 	f.AtMostK(x, n, k)
 }
