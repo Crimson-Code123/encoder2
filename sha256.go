@@ -15,26 +15,42 @@ func (h *Hash)Encode() {
 	}
 	//mixing w
 	for i := 16; i < 64; i++ {
-		
+		s0 := h.Form.NewVars(32, "s0")
+		s1 := h.Form.NewVars(32, "s1")
+		_ = s0
+		_ = s1
+		// r1 := h.Form.RotateR(h.w[i-15], 7)
 	}
 	//
 	for i := 0; i < 64; i++ {
-
+		sig0 := h.Form.NewVars(32, "sig0")
+		sig1 := h.Form.NewVars(32, "sig1")
+		_ = sig0
+		_ = sig1
+		// h.Form.Sigma0(sig0)
+		// h.Form.Sigma1(sig1)
+		// f1 := h.Form.NewVars(32, "f1")
+		// f2 := h.Form.NewVars(32, "f2")
+		// h.Form.If(f1, h.E[i+3], h.E[i+2], h.E[i+1], 32)
+		// h.Form.Maj3(f2, h.A[i+3], h.A[i+2], h.A[i+1], 32)
+		// t := h.Form.NewVars(32, "t")
+		// h.Form.Add5(t, h.E[:], sig1, f1, _K[i], h.w[i], 32)
+		// h.Form.Add2(h.E[:], h.A[:], t)
+		// h.Form.Add3(h.A[:], T, sig0, f2)
 	}
-	//final addition
-	
+	//final addition	
 }
 
 func NewSHA256(input string) Hash {
 	h := Hash{}
 	h.Rounds = 64
-	h.in = []byte(input)
+	// h.in = []byte(input)
 	h.Form = Formula{}
 	h.UseIVBlock = true
-	h.in = make([]byte, len(input))
-	for i := 0; i < len(input); i++ {
-		h.in[i] = byte(input[i])
-	}
+	// h.in = make([]byte, len(input))
+	// for i := 0; i < len(input); i++ {
+		// h.in[i] = byte(input[i])
+	// }
 	h.InputSize = len(input)
 	h.OutputSize = 8
 	return h

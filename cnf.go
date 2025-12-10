@@ -29,26 +29,19 @@ func (f *Formula) AssignVariables(x uint) {
 	}
 }
 
-func (f *Formula) NewVarsAlt(input uint, n int) {
-	for i := 0; i < n; i++ {
-
-	}
-}
-
-/*  */
-func (f *Formula) NewVars(ivec []int, vars int, name string) /* []int */ {
-	// x := make([]int, vars)
+func (f *Formula) NewVars(/* ivec []int, */ vars int, name string) []int {
+	x := make([]int, vars)
 	for i := 0; i < vars; i++ {
 		f.VarID += 1
-		ivec[i] = f.VarID
-		// x = append(x, )
+		// ivec[i] = f.VarID
+		x = append(x, f.VarID)
 	}
 	if name != "" {
-		f.VarNames[name] = ivec[0]
-		// f.VarNames[name] = x[0]
+		// f.VarNames[name] = ivec[0]
+		f.VarNames[name] = x[0]
 	}
 	f.varCount += vars
-	// return x
+	return x
 }
 
 func NewFormula() Formula {
@@ -80,41 +73,39 @@ func (f *Formula) FixedValue(z []int, value int, n int) {
 
 func (f *Formula) Add2(z []int, x []int, y []int, n int) {
 	r := n - 1
-	c := make([]int, r)
-	f.NewVars(c, r, "")
+	c := f.NewVars(r, "")
+
 	f.HalfAdder(c, z, x, y, 1)
+
+	//fulladder(c+1, z+1, x+1, y+1, c, n-2);
 	f.FullAdder(c[1:], z[1:], x[1:], y[1:], c, n-2)
-	f.Xor3(z, x, y, c, 1) //
+	//xor3(z+n-1, x+n-1, y+n-1, c+n-2, 1);
+	f.Xor3(z[n+1:], x[n+1:], y[n+1:], c[n-2:], 1)
 }
 
+/* Unused variables? */
 func (f *Formula) Add3(z []int, a []int, b []int, c []int, n int) {
-	t0 := make([]int, n)
-	f.NewVars(t0, n, "")
+	t0 := f.NewVars(n, "")
 	f.Add2(t0, a, b, n)
-	t1 := make([]int, n)
-	f.NewVars(t1, n, "")
+	t1 := f.NewVars(n, "")
+	_ = t1
 	f.Add2(z, c, t0, n)
 }
 
 func (f *Formula) Add4(z []int, a []int, b []int, c []int, d []int, n int) {
-	t0 := make([]int, n)
-	f.NewVars(t0, n, "")
+	t0 := f.NewVars(n, "")
 	f.Add2(t0, a, b, n)
-	t1 := make([]int, n)
-	f.NewVars(t1, n, "")
+	t1 := f.NewVars(n, "")
 	f.Add2(t1, c, d, n)
 	f.Add2(z, t0, t1, n)
 }
 
 func (f *Formula) Add5(z []int, a []int, b []int, c []int, d []int, e []int, n int) {
-	t0 := make([]int, n)
-	f.NewVars(t0, n, "")
+	t0 := f.NewVars(n, "")
 	f.Add2(t0, a, b, n)
-	t1 := make([]int, n)
-	f.NewVars(t1, n, "")
+	t1 := f.NewVars(n, "")
 	f.Add2(t1, c, d, n)
-	t2 := make([]int, n)
-	f.NewVars(t2, n, "")
+	t2 := f.NewVars(n, "")
 	f.Add2(t2, t0, t1, n)
 }
 
@@ -207,6 +198,26 @@ func (f *Formula) Xor4(z []int, a []int, b []int, c []int, d []int, n int) {
 	}
 }
 
+/* 
+void SHA256::Sigma0(int *z, int *x)
+{
+	int r1[32], r2[32], r3[32];
+	cnf.rotr(r1, x, 2);
+	cnf.rotr(r2, x, 13);
+	cnf.rotr(r3, x, 22);
+	cnf.xor3(z, r1, r2, r3);
+}
+
+void SHA256::Sigma1(int *z, int *x)
+{
+	int r1[32], r2[32], r3[32];
+	cnf.rotr(r1, x, 6);
+	cnf.rotr(r2, x, 11);
+	cnf.rotr(r3, x, 25);
+	cnf.xor3(z, r1, r2, r3);
+}
+*/
+
 func (f *Formula) Sigma0(z []int, x []int) {
 	r1 := [32]int{}
 	r2 := [32]int{}
@@ -215,6 +226,7 @@ func (f *Formula) Sigma0(z []int, x []int) {
 	_ = r2
 	_ = r3
 	// f.RotateL()
+
 }
 
 func (f *Formula) Sigma1(z []int, x []int) {
