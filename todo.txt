@@ -6,5 +6,13 @@ Alternative structure layout.
 
 
 2025-12-09
+Worked on swapping out pointer arithmetic for standard arrays.
+Newvars needs to be fixed
+
+2025-12-10
+Fixedvalue now works.
+Newvars works.
+Good progress on sha256 and cnf.
+
 
 

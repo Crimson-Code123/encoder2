@@ -12,4 +12,13 @@ func sha256sum(data string) string {
 	return string(h.Sum([]byte(data)))
 }
 
+/* Convert fixed length  */
+func arrayConv(item [32]int) []int {
+	r := make([]int, 0)
+	for i := 0; i < len(item); i++ {
+		r = append(r, item[i])
+	}
+	return r
+}
+
 

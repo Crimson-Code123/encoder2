@@ -1,7 +1,5 @@
 package main
 
-import "fmt"
-
 /* CNF-related stuff */
 
 /*
@@ -22,16 +20,9 @@ type Clause struct {
 	Literals []int
 }
 
-/* Encode input integer as true-false values for CNF */
-func (f *Formula) AssignVariables(x uint) {
-	for x := 0; x < 32; x++ {
-
-	}
-}
-
-func (f *Formula) NewVars(/* ivec []int, */ vars int, name string) []int {
-	x := make([]int, vars)
-	for i := 0; i < vars; i++ {
+func (f *Formula) NewVars( /* ivec []int, */ varCount int, name string) []int {
+	x := make([]int, 0)
+	for i := 0; i < varCount; i++ {
 		f.VarID += 1
 		// ivec[i] = f.VarID
 		x = append(x, f.VarID)
@@ -40,32 +31,26 @@ func (f *Formula) NewVars(/* ivec []int, */ vars int, name string) []int {
 		// f.VarNames[name] = ivec[0]
 		f.VarNames[name] = x[0]
 	}
-	f.varCount += vars
+	f.varCount += varCount
 	return x
 }
 
-func NewFormula() Formula {
-	f := Formula{}
-	f.VarNames = make(map[string]int)
-	return f
-}
-
-func NewClause(vars []int) Clause {
-	c := Clause{}
-	c.Literals = vars
-	return c
-}
-
+/* Encode value into bitvector z */
 func (f *Formula) FixedValue(z []int, value int, n int) {
+	// fmt.Println(z)
 	for i := 0; i < n; i++ {
-		var x int
-		if z[i] < 0 {
-			x = (value >> i) & 1
+		// var x int
+		x := z[i]
+		// fmt.Printf("x: %d | v: %d\n", x, (value >> i) & 1)
+		if (value>>i)&1 <= 0 {
+			// x = (value >> i) & 1
+			f.AddClauseVec([]int{int(-x)})
 		} else {
-			x = (value >> i) & 1
+			// x = (value >> i) & 1
+			f.AddClauseVec([]int{int(x)})
 		}
-		fmt.Println(x, -x) //
-		f.AddClauseVec([]int{int(x)})
+		// fmt.Println(x, -x) //
+		// f.AddClauseVec([]int{int(x)})
 	}
 }
 
@@ -80,7 +65,7 @@ func (f *Formula) Add2(z []int, x []int, y []int, n int) {
 	//fulladder(c+1, z+1, x+1, y+1, c, n-2);
 	f.FullAdder(c[1:], z[1:], x[1:], y[1:], c, n-2)
 	//xor3(z+n-1, x+n-1, y+n-1, c+n-2, 1);
-	f.Xor3(z[n+1:], x[n+1:], y[n+1:], c[n-2:], 1)
+	f.Xor3(z[n-1:], x[n-1:], y[n-1:], c[n-2:], 1)
 }
 
 /* Unused variables? */
@@ -198,7 +183,7 @@ func (f *Formula) Xor4(z []int, a []int, b []int, c []int, d []int, n int) {
 	}
 }
 
-/* 
+/*
 void SHA256::Sigma0(int *z, int *x)
 {
 	int r1[32], r2[32], r3[32];
@@ -219,24 +204,23 @@ void SHA256::Sigma1(int *z, int *x)
 */
 
 func (f *Formula) Sigma0(z []int, x []int) {
-	r1 := [32]int{}
-	r2 := [32]int{}
-	r3 := [32]int{}
-	_ = r1
-	_ = r2
-	_ = r3
-	// f.RotateL()
-
+	r1 := make([]int, 32)
+	r2 := make([]int, 32)
+	r3 := make([]int, 32)
+	r1 = f.RotateR(r1, x, 2, 32)
+	r2 = f.RotateR(r2, x, 13, 32)
+	r3 = f.RotateR(r3, x, 22, 32)
+	f.Xor3(z, r1, r2, r3, 32)
 }
 
 func (f *Formula) Sigma1(z []int, x []int) {
-	r1 := [32]int{}
-	r2 := [32]int{}
-	r3 := [32]int{}
-	_ = r1
-	_ = r2
-	_ = r3
-
+	r1 := make([]int, 32)
+	r2 := make([]int, 32)
+	r3 := make([]int, 32)
+	r1 = f.RotateR(r1, x, 6, 32)
+	r2 = f.RotateR(r2, x, 11, 32)
+	r3 = f.RotateR(r3, x, 25, 32)
+	f.Xor3(z, r1, r2, r3, 32)
 }
 
 func (f *Formula) Equal(z []int, x []int, n int) {
@@ -253,10 +237,12 @@ func (f *Formula) NEqual(z []int, x []int, n int) {
 	}
 }
 
+/* Assign x to z */
 func (f *Formula) Assign(z []int, x []int, n int) []int {
 	return f.RotateL(z, x, 0, n)
 }
 
+/* Assign to z and return z */
 func (f *Formula) RotateL(z []int, x []int, p int, n int) []int {
 	r := make([]int, 0)
 	for i := 0; i < n; i++ {
@@ -274,14 +260,22 @@ func (f *Formula) AddClause(c Clause) {
 	f.Clauses = append(f.Clauses, c)
 }
 
+/*  */
 func (f *Formula) AddClauseVec(c []int) {
 	x := Clause{}
 	x.Literals = c
 	f.Clauses = append(f.Clauses, x)
 }
 
-func (f *Formula) AppendFormula(fx Formula) {
+func NewFormula() Formula {
+	f := Formula{}
+	f.VarNames = make(map[string]int)
+	return f
+}
 
+func (f *Formula) AppendFormula(fx Formula) {
+	f.varCount += fx.varCount
+	f.Clauses = append(f.Clauses, fx.Clauses...)
 }
 
 func (f *Formula) VarCount() int {
