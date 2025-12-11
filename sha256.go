@@ -142,11 +142,6 @@ func NewSHA256(input string) Hash {
 	return h
 }
 
-// type SHA256 struct {
-// 	h Hash
-
-// }
-
 var _K = []uint32{
 	0x428a2f98,
 	0x71374491,

@@ -13,6 +13,7 @@ Newvars needs to be fixed
 Fixedvalue now works.
 Newvars works.
 Good progress on sha256 and cnf.
-
+Split out sha256 functions.
+Added some verification tests
 
 

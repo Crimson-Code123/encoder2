@@ -10,7 +10,7 @@ var (
 
 func main() {
 	fmt.Println("")
-	test2()
+	test3()
 }
 
 func initHash(input string) {

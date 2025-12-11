@@ -22,3 +22,6 @@ func arrayConv(item [32]int) []int {
 }
 
 
+func intToBitVec() []int {
+	return make([]int, 0)
+}
