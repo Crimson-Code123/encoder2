@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/hex"
 	"fmt"
 	"net"
 	"net/http"
@@ -24,7 +25,7 @@ const (
 func getHeight() int {
 	resp, err := http.Get("https://blockchain.info/latestblock")
 	if err != nil {
-		fmt.Println("Http:", err)
+		fmt.Println("http:", err)
 	}
 	_ = resp
 	// fmt.Println(resp.Body.Read())
@@ -40,31 +41,54 @@ func listener() {
 	if err != nil {
 		fmt.Println("Listener:", err)
 	}
-	wr := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
-	//API change?
-	init := `{"id": 1, "method": "mining.subscribe", "params": []}\n'`
+	w := bufio.NewWriter(conn)
+	r := bufio.NewReader(conn)
+	_ = r
+	// wr := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
+
+	//https://go.dev/blog/strings
+	init1 := `{"id": 1, "method": "mining.subscribe", "params": []}`
 	init2 := `{"params": ["' + address.encode() + b'", "password"], "id": 2, "method": "mining.authorize"}\n`
 	_ = init2
-	wr.Write([]byte(init))
-	wr.Flush()
+	_ = init1
+	fmt.Println([]byte(init1))
+	fmt.Println(hex.EncodeToString([]byte(init1)))
+	// fmt.Println(
+	writeData(w, []byte(init1[:len(init1)]))
+	
 	buf := make([]byte, 1024)
+	_, err = conn.Read(buf)
 	// rdr := bufio.NewReader(conn)
 	fmt.Println("Read...")
-	read, err := wr.ReadByte()
+	// read, err := r.ReadByte()
 	if err != nil {
 		fmt.Println("read:", err)
 	}
-	if read != 0 {
-		fmt.Println("Data:", string(buf))
-	} else {
-		fmt.Println("No data read")
-	}
+	// _ = buf
+	// fmt.Println(read)
+	fmt.Println(buf)
+	// if read != 0 {
+	// 	fmt.Println("Data:", string(buf))
+	// } else {
+	// 	fmt.Println("No data read")
+	// }
 
 	// err = json.Unmarshal()
 }
 
-/* 
+func writeData(w *bufio.Writer, data []byte) {
+	w.Write(data)
+	w.Flush()
+}
 
+func readData(r *bufio.Reader) []byte {
+	x := make([]byte, 0)
+
+	return x
+}
+
+
+/*
 def get_current_block_height():
 	# returns the current network height
 	r = requests.get('https://blockchain.info/latestblock')
@@ -72,11 +96,11 @@ def get_current_block_height():
 
 
 def bitcoin_miner(t , restarted = False):
-	
+
 	target = (ctx.nbits[2:] + '00' * (int(ctx.nbits[:2], 16) - 3)).zfill(64)
 	randInt = random.randint(0, 2**32-1)
 	extranonce2 = hex(randInt)[2:].zfill(2 * ctx.extranonce2_size)
-	
+
 	coinbase = ctx.coinb1 + ctx.extranonce1 + extranonce2 + ctx.coinb2
 	coinbase_hash_bin = hashlib.sha256(hashlib.sha256(binascii.unhexlify(coinbase)).digest()).digest()
 	merkle_root = coinbase_hash_bin
@@ -87,7 +111,7 @@ def bitcoin_miner(t , restarted = False):
 	work_on = get_current_block_height()
 	ctx.nHeightDiff[work_on + 1] = 0
 	_diff = int("00000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" , 16)
-	
+
 	print(Fore.MAGENTA, '[', timer(), ']', Fore.YELLOW, '[*] Working to solve block with ', Fore.RED, 'height {}'.format(work_on + 1))
 	while True:
 		t.check_self_shutdown()
@@ -102,11 +126,11 @@ def bitcoin_miner(t , restarted = False):
 			bitcoin_miner(t , restarted = True)
 			print(Back.YELLOW , Fore.MAGENTA , '[' , timer() , ']' , Fore.BLUE , 'Bitcoin Miner Restart Now...' , Style.RESET_ALL)
 			continue
-	
+
 		nonce = hex(random.randint(0 , 2 ** 32 - 1))[2 :].zfill(8)  # nNonce   #hex(int(nonce,16)+1)[2:]
 		blockheader = ctx.version + ctx.prevhash + merkle_root + ctx.ntime + ctx.nbits + nonce + '000000800000000000000000000000000000000000000000000000000000000000000000000000000000000080020000'
 		hash = hashlib.sha256(hashlib.sha256(binascii.unhexlify(blockheader)).digest()).digest()
-	
+
 		hash = binascii.hexlify(hash).decode()
 		if hash.startswith('0000000'):
 			logg('[*] New hash: {} for block {}'.format(hash , work_on + 1))
@@ -161,10 +185,17 @@ def block_listener(t):
 
 
 
+sock.sendall(b'{"id": 1, "method": "mining.subscribe", "params": []}\n')
+
+
+{'result': [[['mining.notify', '693da59c']], '1a5a3d69', 8], 'id': 1, 'error': None}
+[['mining.notify', '693da59c']] 1a5a3d69 8
+b'{"result":false,"error":"Empty workername parameter","id":2}\n'
+
+sock.sendall(b'{"params": ["' + address.encode() + b'", "password"], "id": 2, "method": "mining.authorize"}\n')
 
 
 
 
 
 */
-

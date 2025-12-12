@@ -73,8 +73,26 @@ r1: [2051 2052 2053 2054 2055 2056 2057 2058 2059 2060 2061 2062 2063 2064 2065 
 	fmt.Println("r1:", r1)
 }
 
+/* int to bitvec test */
 func test4() {
-
+	//435441986
+	//1116352408
+	input := 0x428a2f98
+	fmt.Println("Input:", input)
+	bv := intToBitVec(uint32(input))
+	fmt.Println("Bitvec:", bv)
 }
+
+/* more utils */
+func test5() {
+	bv := bytesToBitVec([]byte("aq"))
+	fmt.Println("BV:", bv)
+}
+
+/* sha256 util test */
+func test6() {
+	fmt.Println(sha256sum("123"))
+}
+
 
 

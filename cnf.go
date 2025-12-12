@@ -183,27 +183,15 @@ func (f *Formula) Xor4(z []int, a []int, b []int, c []int, d []int, n int) {
 	}
 }
 
-/*
-void SHA256::Sigma0(int *z, int *x)
-{
-	int r1[32], r2[32], r3[32];
-	cnf.rotr(r1, x, 2);
-	cnf.rotr(r2, x, 13);
-	cnf.rotr(r3, x, 22);
-	cnf.xor3(z, r1, r2, r3);
-}
-
-void SHA256::Sigma1(int *z, int *x)
-{
-	int r1[32], r2[32], r3[32];
-	cnf.rotr(r1, x, 6);
-	cnf.rotr(r2, x, 11);
-	cnf.rotr(r3, x, 25);
-	cnf.xor3(z, r1, r2, r3);
-}
-*/
-
 func (f *Formula) Sigma0(z []int, x []int) {
+	/*
+		void SHA256::Sigma0(int *z, int *x)
+		int r1[32], r2[32], r3[32];
+		cnf.rotr(r1, x, 2);
+		cnf.rotr(r2, x, 13);
+		cnf.rotr(r3, x, 22);
+		cnf.xor3(z, r1, r2, r3);
+	*/
 	r1 := make([]int, 32)
 	r2 := make([]int, 32)
 	r3 := make([]int, 32)
@@ -214,6 +202,14 @@ func (f *Formula) Sigma0(z []int, x []int) {
 }
 
 func (f *Formula) Sigma1(z []int, x []int) {
+	/*
+		void SHA256::Sigma1(int *z, int *x)
+		int r1[32], r2[32], r3[32];
+		cnf.rotr(r1, x, 6);
+		cnf.rotr(r2, x, 11);
+		cnf.rotr(r3, x, 25);
+		cnf.xor3(z, r1, r2, r3);
+	*/
 	r1 := make([]int, 32)
 	r2 := make([]int, 32)
 	r3 := make([]int, 32)

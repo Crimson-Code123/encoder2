@@ -1,6 +1,8 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // 47b60685dfd5ceed368238b9611a105a46f80d7973e72a29b87ec8542f22fdf5
 
@@ -10,7 +12,8 @@ var (
 
 func main() {
 	fmt.Println("")
-	test3()
+	test5()
+	listener()
 }
 
 func initHash(input string) {
@@ -18,3 +21,6 @@ func initHash(input string) {
 	h.Encode()
 	writeDIMACS("hash.dimacs", h.F)
 }
+
+
+
