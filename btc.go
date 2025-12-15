@@ -2,10 +2,11 @@ package main
 
 import (
 	"bufio"
-	"encoding/hex"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
+	"time"
 )
 
 /* Mining functionality */
@@ -43,37 +44,45 @@ func listener() {
 	}
 	w := bufio.NewWriter(conn)
 	r := bufio.NewReader(conn)
+	conn.SetDeadline(time.Now().Add(5 * time.Second))
 	_ = r
 	// wr := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
-
 	//https://go.dev/blog/strings
 	init1 := `{"id": 1, "method": "mining.subscribe", "params": []}`
-	init2 := `{"params": ["' + address.encode() + b'", "password"], "id": 2, "method": "mining.authorize"}\n`
+	init3 := `{"id": 1, "method": "mining.subscribe", "params": []}\n`
+
+	init2 := `{"params": ["' + address.encode() + b'", "password"], "id": 2, "method": "mining.authorize"}`
 	_ = init2
 	_ = init1
-	fmt.Println([]byte(init1))
-	fmt.Println(hex.EncodeToString([]byte(init1)))
-	// fmt.Println(
-	writeData(w, []byte(init1[:len(init1)]))
-	
-	buf := make([]byte, 1024)
-	_, err = conn.Read(buf)
-	// rdr := bufio.NewReader(conn)
-	fmt.Println("Read...")
+	// fmt.Println([]byte(init1[:len(init1)]))
+	writeString(w, init1)
+	writeString(w, init3)
+	// writeData(w, []byte(init1[:len(init1)]))
+	// readData(r)
+	data, err := r.Peek(10)
+	if err != nil {
+		fmt.Println("Peek:", err)
+	}
+	fmt.Println(data)
+	// data := readData(r)
+	// fmt.Println(data)
 	// read, err := r.ReadByte()
 	if err != nil {
 		fmt.Println("read:", err)
 	}
 	// _ = buf
 	// fmt.Println(read)
-	fmt.Println(buf)
+	// fmt.Println(buf)
 	// if read != 0 {
 	// 	fmt.Println("Data:", string(buf))
 	// } else {
 	// 	fmt.Println("No data read")
 	// }
-
 	// err = json.Unmarshal()
+}
+
+func writeString(w *bufio.Writer, s string) {
+	writeData(w, []byte(s))
 }
 
 func writeData(w *bufio.Writer, data []byte) {
@@ -82,11 +91,18 @@ func writeData(w *bufio.Writer, data []byte) {
 }
 
 func readData(r *bufio.Reader) []byte {
+	var err error
+	b, err := io.ReadAll(r)
+	fmt.Println(b, err)
 	x := make([]byte, 0)
-
+	buf := make([]byte, 512)
+	_, err = r.Read(buf)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(buf)
 	return x
 }
-
 
 /*
 def get_current_block_height():

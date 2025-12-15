@@ -94,5 +94,17 @@ func test6() {
 	fmt.Println(sha256sum("123"))
 }
 
+func test7() {
+	vec := intToBitVec(1234)
+	fmt.Println("BV:", vec)
+	x := bitVecToInt(reverse(vec))
+	fmt.Println("Int:", x)
+}
 
-
+func test8() {
+	vec := intToBitVec(1234)
+	fmt.Println("BV :", vec)
+	rev := reverse(vec)
+	fmt.Println("Rev:", rev)
+	fmt.Println("Bak:", reverse(rev))
+}

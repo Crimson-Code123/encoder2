@@ -11,16 +11,14 @@ var (
 )
 
 func main() {
-	fmt.Println("")
-	test5()
-	listener()
+	fmt.Sprintf("")
+	initHash("123", 1)
+	// listener()
 }
 
-func initHash(input string) {
-	h := NewSHA256(input)
-	h.Encode()
+
+func initHash(input string, n int) {
+	h := NewSHA256(input, n)
+	h.MultiHash()
 	writeDIMACS("hash.dimacs", h.F)
 }
-
-
-
