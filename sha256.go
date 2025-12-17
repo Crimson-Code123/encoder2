@@ -77,15 +77,15 @@ func (h *Hash) Add() {
 
 /* main loop of sha256 */
 func (h *Hash) MainLoop(i int) {
-	sig0 := h.F.NewVars(32, fmt.Sprintf("sig0_%d", i))
-	sig1 := h.F.NewVars(32, fmt.Sprintf("sig1_%d", i))
+	sig0 := h.F.NewVars(32, fmt.Sprintf("SIG0_%d", i))
+	sig1 := h.F.NewVars(32, fmt.Sprintf("SIG1_%d", i))
 	h.F.Sigma0(sig0, arrConv(h.A[i+3]))
 	h.F.Sigma1(sig1, arrConv(h.E[i+3]))
-	f1 := h.F.NewVars(32, fmt.Sprintf("f1_%d", i))
-	f2 := h.F.NewVars(32, fmt.Sprintf("f2_%d", i))
+	f1 := h.F.NewVars(32, fmt.Sprintf("F1_%d", i))
+	f2 := h.F.NewVars(32, fmt.Sprintf("F2_%d", i))
 	h.F.If(f1, arrConv(h.E[i+3]), arrConv(h.E[i+2]), arrConv(h.E[i+1]), 32)
 	h.F.Maj3(f2, arrConv(h.A[i+3]), arrConv(h.A[i+2]), arrConv(h.A[i+1]), 32)
-	t := h.F.NewVars(32, fmt.Sprintf("t_%d", i))
+	t := h.F.NewVars(32, fmt.Sprintf("T_%d", i))
 	h.F.Add5(t, arrConv(h.E[i]), sig1, f1, arrConv(h.K[i]), arrConv(h.W[i]), 32)
 	h.F.Add2(arrConv(h.E[i+4]), arrConv(h.A[i]), t, 32)
 	h.F.Add3(arrConv(h.A[i+4]), t, sig0, f2, 32)
@@ -105,8 +105,8 @@ func (h *Hash) Mixer1(i int) {
 
 /* Mix w values */
 func (h *Hash) Mixer2(i int) {
-	s0 := h.F.NewVars(32, "s0")
-	s1 := h.F.NewVars(32, "s1")
+	s0 := h.F.NewVars(32, fmt.Sprintf("S0_%d", i))
+	s1 := h.F.NewVars(32, fmt.Sprintf("S1_%d", i))
 	r1 := make([]int, 32)
 	r2 := make([]int, 32)
 
@@ -156,7 +156,7 @@ func (h *Hash) EncodeIV() {
 /* Encode k values */
 func (h *Hash) EncodeConst() {
 	for i := 0; i < 64; i++ {
-		h.F.NewVars(len(h.K[i]), fmt.Sprintf("k_%d", i))
+		h.K[i] = [32]int(h.F.NewVars(len(h.K[i]), fmt.Sprintf("K_%d", i)))
 		h.F.FixedValue(arrConv(h.K[i]), int(_K[i]), 32)
 	}
 }
@@ -168,7 +168,7 @@ func (h *Hash) InitVars() {
 		h.tmp[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("tmp_%d", i)))
 	}
 	for i := 0; i < h.Rounds; i++ {
-		h.W[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("w_%d", i)))
+		h.W[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("W_%d", i)))
 		h.A[i+4] = [32]int(h.F.NewVars(32, fmt.Sprintf("A_%d", i+4)))
 		h.E[i+4] = [32]int(h.F.NewVars(32, fmt.Sprintf("E_%d", i+4)))
 	}
@@ -367,11 +367,12 @@ type Hash struct {
 	W [64][32]int //mixing values initialized from input
 }
 
+/* Bit vector table for storing multi hash values */
 type VecTable struct {
 	chain [8][32]int //
 	tmp   [8][32]int //
 	out   [8][32]int //output hash value
-	P     [][8]int   //input string as bitvec, must be padded
+	P     [][8]int   //input string as bitvec, must be padded mod 32
 	//a,b,c,d,e,f,g,h mixing values
 	A [70][32]int
 	E [70][32]int

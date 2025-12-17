@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 /* CNF-related stuff */
 
 /*
@@ -20,27 +22,32 @@ type Clause struct {
 	Literals []int
 }
 
-func (f *Formula) NewVars( /* ivec []int, */ varCount int, name string) []int {
+/* Allocate variables in the formula */
+func (f *Formula) NewVars(varCount int, name string) []int {
 	x := make([]int, 0)
 	for i := 0; i < varCount; i++ {
 		f.VarID += 1
-		// ivec[i] = f.VarID
 		x = append(x, f.VarID)
 	}
 	if name != "" {
-		// f.VarNames[name] = ivec[0]
 		f.VarNames[name] = x[0]
 	}
 	f.varCount += varCount
 	return x
 }
 
-/* Encode value into bitvector z */
+/* Need to verify */
 func (f *Formula) FixedValue(z []int, value int, n int) {
-	// fmt.Println(z)
+	/*
+		for (int i = 0; i < n; i++) {
+	        int x = (value >> i) & 1 ? z[i] : -z[i];
+	        addClause({ x });
+	    }
+	*/
+	fmt.Println(value, z)
 	for i := 0; i < n; i++ {
-		// var x int
 		x := z[i]
+		
 		// fmt.Printf("x: %d | v: %d\n", x, (value >> i) & 1)
 		if (value>>i)&1 <= 0 {
 			// x = (value >> i) & 1
@@ -49,8 +56,6 @@ func (f *Formula) FixedValue(z []int, value int, n int) {
 			// x = (value >> i) & 1
 			f.AddClauseVec([]int{int(x)})
 		}
-		// fmt.Println(x, -x) //
-		// f.AddClauseVec([]int{int(x)})
 	}
 }
 
@@ -58,7 +63,7 @@ func (f *Formula) FixedValue(z []int, value int, n int) {
 
 func (f *Formula) Add2(z []int, x []int, y []int, n int) {
 	r := n - 1
-	c := f.NewVars(r, "")
+	c := f.NewVars(r, fmt.Sprintf("add2_c_%d", z[0]))
 
 	f.HalfAdder(c, z, x, y, 1)
 
@@ -70,27 +75,28 @@ func (f *Formula) Add2(z []int, x []int, y []int, n int) {
 
 /* Unused variables? */
 func (f *Formula) Add3(z []int, a []int, b []int, c []int, n int) {
-	t0 := f.NewVars(n, "")
+	t0 := f.NewVars(n, fmt.Sprintf("add3_t0_%d", z[0]))
 	f.Add2(t0, a, b, n)
-	t1 := f.NewVars(n, "")
+	t1 := f.NewVars(n, fmt.Sprintf("add3_t1_%d", z[0]))
 	_ = t1
 	f.Add2(z, c, t0, n)
+	// f.Add2(z, t0, t1, n)
 }
 
 func (f *Formula) Add4(z []int, a []int, b []int, c []int, d []int, n int) {
-	t0 := f.NewVars(n, "")
+	t0 := f.NewVars(n, fmt.Sprintf("add4_t0_%d", z[0]))
 	f.Add2(t0, a, b, n)
-	t1 := f.NewVars(n, "")
+	t1 := f.NewVars(n, fmt.Sprintf("add4_t1_%d", z[0]))
 	f.Add2(t1, c, d, n)
 	f.Add2(z, t0, t1, n)
 }
 
 func (f *Formula) Add5(z []int, a []int, b []int, c []int, d []int, e []int, n int) {
-	t0 := f.NewVars(n, "")
+	t0 := f.NewVars(n, fmt.Sprintf("add5_t0_%d", z[0]))
 	f.Add2(t0, a, b, n)
-	t1 := f.NewVars(n, "")
+	t1 := f.NewVars(n, fmt.Sprintf("add5_t1_%d", z[0]))
 	f.Add2(t1, c, d, n)
-	t2 := f.NewVars(n, "")
+	t2 := f.NewVars(n, fmt.Sprintf("add5_t2_%d", z[0]))
 	f.Add2(t2, t0, t1, n)
 }
 
@@ -238,7 +244,7 @@ func (f *Formula) Assign(z []int, x []int, n int) []int {
 	return f.RotateL(z, x, 0, n)
 }
 
-/* Assign to z and return z */
+/* Rotate x into z and return z */
 func (f *Formula) RotateL(z []int, x []int, p int, n int) []int {
 	r := make([]int, 0)
 	for i := 0; i < n; i++ {

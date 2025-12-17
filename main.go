@@ -19,6 +19,7 @@ func main() {
 
 func initHash(input string, n int) {
 	h := NewSHA256(input, n)
+	fmt.Println(h.F)
 	h.MultiHash()
 	writeDIMACS("hash.dimacs", h.F)
 }
