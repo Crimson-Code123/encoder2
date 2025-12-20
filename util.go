@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/sha256"
+	"os"
 )
 
 /* Util functions */
@@ -24,6 +25,25 @@ func arrConv(item [32]int) []int {
 	return r
 }
 
+func arrConv8(item [8]int) []int {
+	r := make([]int, 0)
+	for i := 0; i < len(item); i++ {
+		r = append(r, item[i])
+	}
+	return r
+}
+
+// func _8to32(item... [8]int) [32]int {
+// 	r := make([]int, 0)
+// 	if len(item) != 4 {
+// 		return [32]int(r)
+// 	}
+// 	for i := 0; i < len(item); i++ {
+// 		r = append(r, item[i])
+// 	}
+// 	return [32]int(r)
+// }
+
 /* output is big endian */
 func intToBitVec(value uint32) []int {
 	x := make([]int, 0)
@@ -41,6 +61,27 @@ func bitVecToInt(vec []int) uint32 {
 		x = x<<1 | vec[i]
 	}
 	return uint32(x)
+}
+
+/*  */
+func shaPaddedMsg(s string) [32]int {
+	x := make([]int, 0)
+	for i := 0; i < len(s); i++ {
+		x = append(x, byteToBitBec(s[i])...)
+	}
+	return [32]int(x)
+}
+
+/* pad sha256 input message */
+func padString(r int) string {
+	var s string
+	s += "€"
+	if r != 0 {
+		for i := 0; i < r; i++ {
+			s += "0"
+		}
+	}
+	return s
 }
 
 func byteToBitBec(p byte) []int {
@@ -73,4 +114,8 @@ func reverse(a []int) []int {
 		r -= 1
 	}
 	return x
+}
+
+func quit() {
+	os.Exit(0)
 }

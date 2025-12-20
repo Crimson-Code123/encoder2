@@ -17,27 +17,19 @@ import "fmt"
 func (h *Hash) Encode() {
 	//for len(h.P) >= 64 {
 	h.InitVars()
+	h.EncodeConst()
 	for j := 0; j < 1; j++ {
 		//todo: chunked
-		h.EncodeConst()
-		/* need to verify */
 		if h.UseIVBlock {
 			h.EncodeIV()
 			h.UseIVBlock = false
 		}
-		/* need to verify */
 		for i := 0; i < 16; i++ {
-			h.Mixer1(i)
+			// h.Mixer1(i)
 		}
 		for i := 16; i < 64; i++ {
 			h.Mixer2(i)
 		}
-		// h.EncodeConst()
-		/* need to verify */
-		// if h.UseIVBlock {
-		// 	h.EncodeIV()
-		// 	h.UseIVBlock = false
-		// }
 		h.AssignChain()
 		//Main loop
 		for i := 0; i < 64; i++ {
@@ -45,20 +37,19 @@ func (h *Hash) Encode() {
 		}
 		//final addition
 		h.Add()
-		//p = p[chunk:]
-		h.ChunkRounds += 1
+		//h.P = h.P[chunk:]
 	}
 	h.UseIVBlock = true
 	//assign to output
 	h.SetOutput()
-	h.ChunkRounds = 0
-	h.EncodeRounds += 1
 }
 
 /* Set the output bits and hash output string */
 func (h *Hash) SetOutput() {
 	for i := 0; i < 8; i++ {
-		h.F.Assign(arrConv(h.out[i]), arrConv(h.tmp[i]), 32)
+		h.out[i] = [32]int(h.F.Assign(arrConv(h.out[i]), arrConv(h.tmp[i]), 32))
+		//todo: fix output bits (get from btc difficulty)
+		h.F.FixedValue(arrConv(h.out[i]), uint32(0), 32)
 	}
 	h.Output = ""
 }
@@ -77,15 +68,30 @@ func (h *Hash) Add() {
 
 /* main loop of sha256 */
 func (h *Hash) MainLoop(i int) {
-	sig0 := h.F.NewVars(32, fmt.Sprintf("SIG0_%d", i))
-	sig1 := h.F.NewVars(32, fmt.Sprintf("SIG1_%d", i))
+	sig0 := h.F.NewVars(32, ""/* fmt.Sprintf("SIG0_%d", i) */)
+	sig1 := h.F.NewVars(32, ""/* fmt.Sprintf("SIG1_%d", i) */)
 	h.F.Sigma0(sig0, arrConv(h.A[i+3]))
 	h.F.Sigma1(sig1, arrConv(h.E[i+3]))
-	f1 := h.F.NewVars(32, fmt.Sprintf("F1_%d", i))
-	f2 := h.F.NewVars(32, fmt.Sprintf("F2_%d", i))
+	f1 := h.F.NewVars(32, ""/* fmt.Sprintf("F1_%d", i) */)
+	f2 := h.F.NewVars(32, ""/* fmt.Sprintf("F2_%d", i) */)
 	h.F.If(f1, arrConv(h.E[i+3]), arrConv(h.E[i+2]), arrConv(h.E[i+1]), 32)
+	/* c++ - 32 bit diff
+	-19409 2049 2081 0
+	-19409 2049 2113 0
+	-19409 2081 2113 0
+	19409 -2081 -2113 0
+	19409 -2049 -2113 0
+	19409 -2049 -2081 0
+	go - 64 bit diff
+	-26065 6657 6721 0
+	-26065 6657 6785 0
+	-26065 6721 6785 0
+	26065 -6721 -6785 0
+	26065 -6657 -6785 0
+	26065 -6657 -6721 0
+	*/
 	h.F.Maj3(f2, arrConv(h.A[i+3]), arrConv(h.A[i+2]), arrConv(h.A[i+1]), 32)
-	t := h.F.NewVars(32, fmt.Sprintf("T_%d", i))
+	t := h.F.NewVars(32, ""/* fmt.Sprintf("T_%d", i) */)
 	h.F.Add5(t, arrConv(h.E[i]), sig1, f1, arrConv(h.K[i]), arrConv(h.W[i]), 32)
 	h.F.Add2(arrConv(h.E[i+4]), arrConv(h.A[i]), t, 32)
 	h.F.Add3(arrConv(h.A[i+4]), t, sig0, f2, 32)
@@ -94,19 +100,16 @@ func (h *Hash) MainLoop(i int) {
 /* Mix p values into w, padded as big endian */
 func (h *Hash) Mixer1(i int) {
 	j := i * 4
-	_ = j
-	//w[i] = uint32(p[j])<<24 | uint32(p[j+1])<<16 | uint32(p[j+2])<<8 | uint32(p[j+3])
-	// x := uint32(h.P[j])<<24 | uint32(h.P[j+1])<<16 | uint32(h.P[j+2])<<8 | uint32(h.P[j+3])
-	// h.W[i] = [32]int(intToBitVec(x))
-	// h.W[i] = [32]int(h.F.Assign(arrConv(h.W[i]), intToBitVec(uint32(bitVecToInt(arrConv(h.P[j])))<<24 | uint32(bitVecToInt(arrConv(h.P[j+1])))<<16 | uint32(bitVecToInt(arrConv(h.P[j+2])))<<8 | uint32(bitVecToInt(arrConv(h.P[j+3]))), 32)))
-
-	// h.W[i] = h.P[i]
+	x := bitVecToInt(arrConv(h.P[j]))<<24 | bitVecToInt(arrConv(h.P[j+1]))<<16 | bitVecToInt(arrConv(h.P[j+2]))<<8 | bitVecToInt(arrConv(h.P[j+3]))
+	h.W[i] = [32]int(intToBitVec(x))
+	//todo: fix the input bits
+	//h.F.FixedValue()
 }
 
 /* Mix w values */
 func (h *Hash) Mixer2(i int) {
-	s0 := h.F.NewVars(32, fmt.Sprintf("S0_%d", i))
-	s1 := h.F.NewVars(32, fmt.Sprintf("S1_%d", i))
+	s0 := h.F.NewVars(32, ""/* fmt.Sprintf("S0_%d", i) */)
+	s1 := h.F.NewVars(32, ""/* fmt.Sprintf("S1_%d", i) */)
 	r1 := make([]int, 32)
 	r2 := make([]int, 32)
 
@@ -126,51 +129,45 @@ func (h *Hash) Mixer2(i int) {
 
 /* Assign chaining values to a,b,c,d,e,f,g,h */
 func (h *Hash) AssignChain() {
-	/*
-		cnf.assign(A[3], chain[0]);
-		cnf.assign(A[2], chain[1]);
-		cnf.assign(A[1], chain[2]);
-		cnf.assign(A[0], chain[3]);
-		cnf.assign(E[3], chain[4]);
-		cnf.assign(E[2], chain[5]);
-		cnf.assign(E[1], chain[6]);
-		cnf.assign(E[0], chain[7]);
-	*/
-	h.F.Assign(arrConv(h.A[3]), arrConv(h.chain[0]), 32)
-	h.F.Assign(arrConv(h.A[2]), arrConv(h.chain[1]), 32)
-	h.F.Assign(arrConv(h.A[1]), arrConv(h.chain[2]), 32)
-	h.F.Assign(arrConv(h.A[0]), arrConv(h.chain[3]), 32)
-	h.F.Assign(arrConv(h.E[3]), arrConv(h.chain[4]), 32)
-	h.F.Assign(arrConv(h.E[2]), arrConv(h.chain[5]), 32)
-	h.F.Assign(arrConv(h.E[1]), arrConv(h.chain[6]), 32)
-	h.F.Assign(arrConv(h.E[0]), arrConv(h.chain[7]), 32)
+	h.A[3] = [32]int(h.F.Assign(arrConv(h.A[3]), arrConv(h.chain[0]), 32))
+	h.A[2] = [32]int(h.F.Assign(arrConv(h.A[2]), arrConv(h.chain[1]), 32))
+	h.A[1] = [32]int(h.F.Assign(arrConv(h.A[1]), arrConv(h.chain[2]), 32))
+	h.A[0] = [32]int(h.F.Assign(arrConv(h.A[0]), arrConv(h.chain[3]), 32))
+	h.E[3] = [32]int(h.F.Assign(arrConv(h.E[3]), arrConv(h.chain[4]), 32))
+	h.E[2] = [32]int(h.F.Assign(arrConv(h.E[2]), arrConv(h.chain[5]), 32))
+	h.E[1] = [32]int(h.F.Assign(arrConv(h.E[1]), arrConv(h.chain[6]), 32))
+	h.E[0] = [32]int(h.F.Assign(arrConv(h.E[0]), arrConv(h.chain[7]), 32))
 }
 
 /* Encode IV constants */
 func (h *Hash) EncodeIV() {
 	for i := 0; i < 8; i++ {
-		h.F.FixedValue(arrConv(h.chain[i]), int(_IV[i]), 32)
+		h.F.FixedValue(arrConv(h.chain[i]), _IV[i], 32)
 	}
 }
 
 /* Encode k values */
 func (h *Hash) EncodeConst() {
 	for i := 0; i < 64; i++ {
-		h.K[i] = [32]int(h.F.NewVars(len(h.K[i]), fmt.Sprintf("K_%d", i)))
-		h.F.FixedValue(arrConv(h.K[i]), int(_K[i]), 32)
+		h.K[i] = [32]int(h.F.NewVars(len(h.K[i]), fmt.Sprintf("k%d", i)))
+		h.F.FixedValue(arrConv(h.K[i]), _K[i], 32)
 	}
 }
 
 /* Init (chunk dependent) named cnf variables */
 func (h *Hash) InitVars() {
+	for i := 0; i < h.Rounds; i++ {
+		h.W[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("w%d", i)))
+	}
 	for i := 0; i < 8; i++ {
-		h.chain[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("chain_%d", i)))
-		h.tmp[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("tmp_%d", i)))
+		h.chain[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("chain%d", i)))
+	}
+	for i := 0; i < 8; i++ {
+		h.tmp[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("tmp%d", i)))
 	}
 	for i := 0; i < h.Rounds; i++ {
-		h.W[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("W_%d", i)))
-		h.A[i+4] = [32]int(h.F.NewVars(32, fmt.Sprintf("A_%d", i+4)))
-		h.E[i+4] = [32]int(h.F.NewVars(32, fmt.Sprintf("E_%d", i+4)))
+		h.A[i+4] = [32]int(h.F.NewVars(32, fmt.Sprintf("a%d", i+4)))
+		h.E[i+4] = [32]int(h.F.NewVars(32, fmt.Sprintf("e%d", i+4)))
 	}
 }
 
@@ -180,7 +177,7 @@ func (h *Hash) MultiHash() {
 		h.Encode()
 		h.Input = h.Output
 		//output vars moved to input
-		h.InitBitVec()
+		// h.InitBitVec()
 	}
 }
 
@@ -189,74 +186,36 @@ func NewSHA256(input string, n int) Hash {
 	h := Hash{}
 	h.Rounds = 64
 	h.F = NewFormula()
-	h.EncodeRounds = 0
-	h.ChunkRounds = 0
 	h.Input = input
 	h.Table = make([]VecTable, n)
 	h.UseIVBlock = true
 	h.InitBitVec()
-	// h.OutputSize = 8
 	return h
 }
 
 /* Init the hashes bit vectors */
 func (h *Hash) InitBitVec() {
-	//todo: needs padding
-	h.P = make([][8]int, len(h.Input))
-	for i := 0; i < len(h.Input); i++ {
-		h.P[i] = [8]int(byteToBitBec(h.Input[i]))
-	}
-	h.InitVars()
-	// h.InputSize = len(h.Input)*8
+	h.InitInput()
+	// h.InitVars()
+	h.InputSize = len(h.Input) * 8
 }
 
-/*
-func (d *digest) Write(p []byte) (nn int, err error) {
-	boring.Unreachable()
-	nn = len(p)
-	d.len += uint64(nn)
-	if d.nx > 0 {
-		n := copy(d.x[d.nx:], p)
-		d.nx += n
-		if d.nx == chunk {
-			blockGeneric(d, d.x[:])
-			d.nx = 0
-		}
-		p = p[n:]
+/* Init input bitvec */
+func (h *Hash) InitInput() {
+	q := len(h.Input) % 4
+	// fmt.Println(q)
+	if q != 0 {
+		h.Input += padString(4 - q - 1)
 	}
-	if len(p) >= chunk {
-		n := len(p) &^ (chunk - 1)
-		blockGeneric(d, p[:n])
-		p = p[n:]
+	// fmt.Println(h.Input)
+	q = len(h.Input) / 4
+	h.P = make([][32]int, len(h.Input))
+	// quit()
+	for i := 0; i < len(h.Input); i += 4 {
+		// h.P[i] = [32]int(byteToBitBec(h.Input[i]))
+		// h.P[i] = shaPaddedMsg(h.Input[i : i+4])
 	}
-	if len(p) > 0 {
-		d.nx = copy(d.x[:], p)
-	}
-	return
 }
-
-// digest represents the partial evaluation of a checksum.
-type digest struct {
-	h     [8]uint32
-	x     [chunk]byte
-	nx    int
-	len   uint64
-}
-// The size of a SHA256 checksum in bytes.
-const Size = 32
-// The blocksize of SHA256 and SHA224 in bytes.
-const BlockSize = 64
-// Sum256 returns the SHA256 checksum of the data.
-func Sum256(data []byte) [Size]byte {
-	if boring.Enabled {
-		return boring.SHA256(data)
-	}
-	var d digest
-	d.Reset()
-	d.Write(data)
-	return d.checkSum()
-}
-*/
 
 /* first 32 bits of the fractional parts of the cube roots of the first 64 primes 2..311) */
 var _K = []uint32{
@@ -341,7 +300,7 @@ var _IV = []uint32{
 /*
     create a 64-entry message schedule array w[0..63] of 32-bit words
 	(The initial values in w[0..63] don't matter, so many implementations zero them here)
-    copy chunk into first 16 words w[0..15] of the message schedule array
+    copy chunk into first 16 words w[0..15] of the message schedule array (512 bits)
 */
 
 type Hash struct {
@@ -349,8 +308,6 @@ type Hash struct {
 	Table        []VecTable //bitvec table
 	Multi        int        //number of chained hashes
 	Rounds       int        //64
-	EncodeRounds int        //
-	ChunkRounds  int        //
 	UseIVBlock   bool       //
 	InputSize    int        //in bits (always a multiple of the number of bits in a character)
 	OutputSize   int        //
@@ -359,7 +316,7 @@ type Hash struct {
 	chain        [8][32]int //
 	tmp          [8][32]int //
 	out          [8][32]int //output hash value
-	P            [][8]int   //input string as bitvec, must be padded
+	P            [][32]int  //input string as bitvec, must be padded
 	//a,b,c,d,e,f,g,h mixing values
 	A [70][32]int
 	E [70][32]int
@@ -372,7 +329,7 @@ type VecTable struct {
 	chain [8][32]int //
 	tmp   [8][32]int //
 	out   [8][32]int //output hash value
-	P     [][8]int   //input string as bitvec, must be padded mod 32
+	P     [][8]int   //input string as bitvec, must be padded
 	//a,b,c,d,e,f,g,h mixing values
 	A [70][32]int
 	E [70][32]int

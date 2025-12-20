@@ -67,8 +67,12 @@ func writeDIMACS(name string, formula Formula) {
 		}
 		io.WriteString(file, "0\n")
 	}
-	for x, y := range formula.VarNames {
-		s := fmt.Sprintf("c %s %d\n", x, y)
+	// for x, y := range formula.VarNames {
+	// 	s := fmt.Sprintf("c %s %d\n", x, y)
+	// 	io.WriteString(file, s)
+	// }
+	for i := 0; i < len(formula.VarName); i++ {
+		s := fmt.Sprintf("c %s %d\n", formula.VarName[i], formula.VarNames[formula.VarName[i]])
 		io.WriteString(file, s)
 	}
 }

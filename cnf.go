@@ -1,19 +1,12 @@
 package main
 
-import "fmt"
-
 /* CNF-related stuff */
-
-/*
- AdderType: Ripple carry
- MultiAdderType: Two operand
- PB Method: Sequential counter
-*/
 
 type Formula struct {
 	Clauses  []Clause
 	VarNames map[string]int
-	Vars     map[int]int //
+	VarName  []string //list for ordered output in dimacs
+	Vars     map[int]int
 	VarID    int
 	varCount int
 }
@@ -31,23 +24,23 @@ func (f *Formula) NewVars(varCount int, name string) []int {
 	}
 	if name != "" {
 		f.VarNames[name] = x[0]
+		f.VarName = append(f.VarName, name)
 	}
 	f.varCount += varCount
 	return x
 }
 
-/* Need to verify */
-func (f *Formula) FixedValue(z []int, value int, n int) {
+/* Encode input value bits as cnf variables */
+func (f *Formula) FixedValue(z []int, value uint32, n int) {
 	/*
-		for (int i = 0; i < n; i++) {
-	        int x = (value >> i) & 1 ? z[i] : -z[i];
-	        addClause({ x });
-	    }
+			for (int i = 0; i < n; i++) {
+		        int x = (value >> i) & 1 ? z[i] : -z[i];
+		        addClause({ x });
+		    }
 	*/
-	fmt.Println(value, z)
+	// fmt.Println(value, z)
 	for i := 0; i < n; i++ {
 		x := z[i]
-		
 		// fmt.Printf("x: %d | v: %d\n", x, (value >> i) & 1)
 		if (value>>i)&1 <= 0 {
 			// x = (value >> i) & 1
@@ -59,11 +52,12 @@ func (f *Formula) FixedValue(z []int, value int, n int) {
 	}
 }
 
-/* Functions */
+/* Logic/arithmetic Functions */
+/* The addition functions may not be complete */
 
 func (f *Formula) Add2(z []int, x []int, y []int, n int) {
 	r := n - 1
-	c := f.NewVars(r, fmt.Sprintf("add2_c_%d", z[0]))
+	c := f.NewVars(r, "" /* fmt.Sprintf("ADD2_c_%d", z[0]) */)
 
 	f.HalfAdder(c, z, x, y, 1)
 
@@ -73,31 +67,30 @@ func (f *Formula) Add2(z []int, x []int, y []int, n int) {
 	f.Xor3(z[n-1:], x[n-1:], y[n-1:], c[n-2:], 1)
 }
 
-/* Unused variables? */
 func (f *Formula) Add3(z []int, a []int, b []int, c []int, n int) {
-	t0 := f.NewVars(n, fmt.Sprintf("add3_t0_%d", z[0]))
+	t0 := f.NewVars(n, "" /* fmt.Sprintf("ADD3_t0_%d", z[0]) */)
 	f.Add2(t0, a, b, n)
-	t1 := f.NewVars(n, fmt.Sprintf("add3_t1_%d", z[0]))
-	_ = t1
+	// t1 := f.NewVars(n, ""/* fmt.Sprintf("add3_t1_%d", z[0]) */)
 	f.Add2(z, c, t0, n)
 	// f.Add2(z, t0, t1, n)
 }
 
 func (f *Formula) Add4(z []int, a []int, b []int, c []int, d []int, n int) {
-	t0 := f.NewVars(n, fmt.Sprintf("add4_t0_%d", z[0]))
+	t0 := f.NewVars(n, "" /* fmt.Sprintf("ADD4_t0_%d", z[0]) */)
 	f.Add2(t0, a, b, n)
-	t1 := f.NewVars(n, fmt.Sprintf("add4_t1_%d", z[0]))
+	t1 := f.NewVars(n, "" /* fmt.Sprintf("ADD4_t1_%d", z[0]) */)
 	f.Add2(t1, c, d, n)
 	f.Add2(z, t0, t1, n)
 }
 
 func (f *Formula) Add5(z []int, a []int, b []int, c []int, d []int, e []int, n int) {
-	t0 := f.NewVars(n, fmt.Sprintf("add5_t0_%d", z[0]))
+	t0 := f.NewVars(n, "" /* fmt.Sprintf("ADD5_t0_%d", z[0]) */)
 	f.Add2(t0, a, b, n)
-	t1 := f.NewVars(n, fmt.Sprintf("add5_t1_%d", z[0]))
+	t1 := f.NewVars(n, "" /* fmt.Sprintf("ADD5_t1_%d", z[0]) */)
 	f.Add2(t1, c, d, n)
-	t2 := f.NewVars(n, fmt.Sprintf("add5_t2_%d", z[0]))
+	t2 := f.NewVars(n, "" /* fmt.Sprintf("ADD5_t2_%d", z[0]) */)
 	f.Add2(t2, t0, t1, n)
+	f.Add2(z, t2, e, n)
 }
 
 func (f *Formula) HalfAdder(c []int, s []int, x []int, y []int, n int) {
@@ -189,6 +182,41 @@ func (f *Formula) Xor4(z []int, a []int, b []int, c []int, d []int, n int) {
 	}
 }
 
+func (f *Formula) Equal(z []int, x []int, n int) {
+	for i := 0; i < n; i++ {
+		f.AddClauseVec([]int{-z[i], x[i]})
+		f.AddClauseVec([]int{z[i], -x[i]})
+	}
+}
+
+func (f *Formula) NEqual(z []int, x []int, n int) {
+	for i := 0; i < n; i++ {
+		f.AddClauseVec([]int{z[i], x[i]})
+		f.AddClauseVec([]int{-z[i], -x[i]})
+	}
+}
+
+/* Assign x to z */
+func (f *Formula) Assign(z []int, x []int, n int) []int {
+	return f.RotateL(z, x, 0, n)
+}
+
+/* Rotate x into z and return z */
+func (f *Formula) RotateL(z []int, x []int, p int, n int) []int {
+	r := make([]int, 0)
+	for i := 0; i < n; i++ {
+		z[i] = x[(i+n-p)%n]
+		r = append(r, z[i])
+	}
+	return r
+}
+
+func (f *Formula) RotateR(z []int, x []int, p int, n int) []int {
+	return f.RotateL(z, x, n-p, n)
+}
+
+/* sha256 sigma functions */
+
 func (f *Formula) Sigma0(z []int, x []int) {
 	/*
 		void SHA256::Sigma0(int *z, int *x)
@@ -225,44 +253,10 @@ func (f *Formula) Sigma1(z []int, x []int) {
 	f.Xor3(z, r1, r2, r3, 32)
 }
 
-func (f *Formula) Equal(z []int, x []int, n int) {
-	for i := 0; i < n; i++ {
-		f.AddClauseVec([]int{-z[i], x[i]})
-		f.AddClauseVec([]int{z[i], -x[i]})
-	}
-}
-
-func (f *Formula) NEqual(z []int, x []int, n int) {
-	for i := 0; i < n; i++ {
-		f.AddClauseVec([]int{z[i], x[i]})
-		f.AddClauseVec([]int{-z[i], -x[i]})
-	}
-}
-
-/* Assign x to z */
-func (f *Formula) Assign(z []int, x []int, n int) []int {
-	return f.RotateL(z, x, 0, n)
-}
-
-/* Rotate x into z and return z */
-func (f *Formula) RotateL(z []int, x []int, p int, n int) []int {
-	r := make([]int, 0)
-	for i := 0; i < n; i++ {
-		z[i] = x[(i+n-p)%n]
-		r = append(r, z[i])
-	}
-	return r
-}
-
-func (f *Formula) RotateR(z []int, x []int, p int, n int) []int {
-	return f.RotateL(z, x, n-p, n)
-}
-
 func (f *Formula) AddClause(c Clause) {
 	f.Clauses = append(f.Clauses, c)
 }
 
-/*  */
 func (f *Formula) AddClauseVec(c []int) {
 	x := Clause{}
 	x.Literals = c
@@ -294,7 +288,10 @@ func (f *Formula) VarCount() int {
 }
 
 func (f *Formula) AtMostK(x []int, n int, k uint) {
+	// var r [n-1][k]int{}
+	/*
 
+	 */
 }
 
 func (f *Formula) AtLeastK(x []int, n int, k uint) {

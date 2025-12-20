@@ -9,19 +9,14 @@ import (
 	"time"
 )
 
+//00000000000000000000 ~ 160 bits
+
 /* Mining functionality */
 
 const (
 	pool    = "solo.ckpool.org:3333"
 	address = ""
 )
-
-// // goroutine
-// func init() {
-// 	for {
-
-// 	}
-// }
 
 func getHeight() int {
 	resp, err := http.Get("https://blockchain.info/latestblock")

@@ -108,3 +108,18 @@ func test8() {
 	fmt.Println("Rev:", rev)
 	fmt.Println("Bak:", reverse(rev))
 }
+
+/* sha256 string padding tests */
+func test9() {
+	x := shaPaddedMsg("1234")
+	fmt.Println("Padded:", x)
+	// fmt.Println("Pad byte BV:", bytesToBitVec([]byte("€")))
+	// fmt.Println("Padded:", shaPaddedMsg("123"))
+	for i := 0; i < 10; i++ {
+		fmt.Println(padString(i))
+	}
+}
+
+func test10() {
+
+}
