@@ -13,17 +13,24 @@ import "fmt"
   	the first word of the input message "abc" after padding is 0x61626380
 */
 
+/* test values
+empty input
+2080933965 1779033703 3144134277 1013904242 415752866 1359893119 2600822924 528734635 - abc values, 1 round
+3820012610 2566659092 2600203464 2574235940 665731556 1687917388 2761267483 2018687061 - digest output
+[227 176 196 66 152 252 28 20 154 251 244 200 153 111 185 36 39 174 65 228 100 155 147 76 164 149 153 27 120 82 184 85] - checksum
+*/
+
 /* Encode sha256 as CNF */
 func (h *Hash) Encode() {
 	//for len(h.P) >= 64 {
+	h.SetInput()
 	h.InitVars()
 	h.EncodeConst()
+	if h.UseIVBlock {
+		h.EncodeIV()
+	}
 	for j := 0; j < 1; j++ {
 		//todo: chunked
-		if h.UseIVBlock {
-			h.EncodeIV()
-			h.UseIVBlock = false
-		}
 		for i := 0; i < 16; i++ {
 			// h.Mixer1(i)
 		}
@@ -39,7 +46,6 @@ func (h *Hash) Encode() {
 		h.Add()
 		//h.P = h.P[chunk:]
 	}
-	h.UseIVBlock = true
 	//assign to output
 	h.SetOutput()
 }
@@ -68,12 +74,12 @@ func (h *Hash) Add() {
 
 /* main loop of sha256 */
 func (h *Hash) MainLoop(i int) {
-	sig0 := h.F.NewVars(32, ""/* fmt.Sprintf("SIG0_%d", i) */)
-	sig1 := h.F.NewVars(32, ""/* fmt.Sprintf("SIG1_%d", i) */)
+	sig0 := h.F.NewVars(32, "" /* fmt.Sprintf("SIG0_%d", i) */)
+	sig1 := h.F.NewVars(32, "" /* fmt.Sprintf("SIG1_%d", i) */)
 	h.F.Sigma0(sig0, arrConv(h.A[i+3]))
 	h.F.Sigma1(sig1, arrConv(h.E[i+3]))
-	f1 := h.F.NewVars(32, ""/* fmt.Sprintf("F1_%d", i) */)
-	f2 := h.F.NewVars(32, ""/* fmt.Sprintf("F2_%d", i) */)
+	f1 := h.F.NewVars(32, "" /* fmt.Sprintf("F1_%d", i) */)
+	f2 := h.F.NewVars(32, "" /* fmt.Sprintf("F2_%d", i) */)
 	h.F.If(f1, arrConv(h.E[i+3]), arrConv(h.E[i+2]), arrConv(h.E[i+1]), 32)
 	/* c++ - 32 bit diff
 	-19409 2049 2081 0
@@ -91,7 +97,7 @@ func (h *Hash) MainLoop(i int) {
 	26065 -6657 -6721 0
 	*/
 	h.F.Maj3(f2, arrConv(h.A[i+3]), arrConv(h.A[i+2]), arrConv(h.A[i+1]), 32)
-	t := h.F.NewVars(32, ""/* fmt.Sprintf("T_%d", i) */)
+	t := h.F.NewVars(32, "" /* fmt.Sprintf("T_%d", i) */)
 	h.F.Add5(t, arrConv(h.E[i]), sig1, f1, arrConv(h.K[i]), arrConv(h.W[i]), 32)
 	h.F.Add2(arrConv(h.E[i+4]), arrConv(h.A[i]), t, 32)
 	h.F.Add3(arrConv(h.A[i+4]), t, sig0, f2, 32)
@@ -108,8 +114,8 @@ func (h *Hash) Mixer1(i int) {
 
 /* Mix w values */
 func (h *Hash) Mixer2(i int) {
-	s0 := h.F.NewVars(32, ""/* fmt.Sprintf("S0_%d", i) */)
-	s1 := h.F.NewVars(32, ""/* fmt.Sprintf("S1_%d", i) */)
+	s0 := h.F.NewVars(32, "" /* fmt.Sprintf("S0_%d", i) */)
+	s1 := h.F.NewVars(32, "" /* fmt.Sprintf("S1_%d", i) */)
 	r1 := make([]int, 32)
 	r2 := make([]int, 32)
 
@@ -166,8 +172,8 @@ func (h *Hash) InitVars() {
 		h.tmp[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("tmp%d", i)))
 	}
 	for i := 0; i < h.Rounds; i++ {
-		h.A[i+4] = [32]int(h.F.NewVars(32, fmt.Sprintf("a%d", i+4)))
-		h.E[i+4] = [32]int(h.F.NewVars(32, fmt.Sprintf("e%d", i+4)))
+		h.A[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("a%d", i)))
+		h.E[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("e%d", i)))
 	}
 }
 
@@ -189,19 +195,19 @@ func NewSHA256(input string, n int) Hash {
 	h.Input = input
 	h.Table = make([]VecTable, n)
 	h.UseIVBlock = true
-	h.InitBitVec()
+	// h.InitBitVec()
 	return h
 }
 
 /* Init the hashes bit vectors */
 func (h *Hash) InitBitVec() {
-	h.InitInput()
+	h.SetInput()
 	// h.InitVars()
 	h.InputSize = len(h.Input) * 8
 }
 
 /* Init input bitvec */
-func (h *Hash) InitInput() {
+func (h *Hash) SetInput() {
 	q := len(h.Input) % 4
 	// fmt.Println(q)
 	if q != 0 {
@@ -214,6 +220,7 @@ func (h *Hash) InitInput() {
 	for i := 0; i < len(h.Input); i += 4 {
 		// h.P[i] = [32]int(byteToBitBec(h.Input[i]))
 		// h.P[i] = shaPaddedMsg(h.Input[i : i+4])
+
 	}
 }
 
@@ -304,19 +311,19 @@ var _IV = []uint32{
 */
 
 type Hash struct {
-	F            Formula
-	Table        []VecTable //bitvec table
-	Multi        int        //number of chained hashes
-	Rounds       int        //64
-	UseIVBlock   bool       //
-	InputSize    int        //in bits (always a multiple of the number of bits in a character)
-	OutputSize   int        //
-	Input        string     //raw input
-	Output       string     //output string
-	chain        [8][32]int //
-	tmp          [8][32]int //
-	out          [8][32]int //output hash value
-	P            [][32]int  //input string as bitvec, must be padded
+	F          Formula
+	Table      []VecTable //bitvec table
+	Multi      int        //number of chained hashes
+	Rounds     int        //64
+	UseIVBlock bool       //
+	InputSize  int        //in bits (always a multiple of the number of bits in a character)
+	OutputSize int        //
+	Input      string     //raw input
+	Output     string     //output string
+	chain      [8][32]int //
+	tmp        [8][32]int //
+	out        [8][32]int //output hash value
+	P          [][32]int  //input string as bitvec, must be padded
 	//a,b,c,d,e,f,g,h mixing values
 	A [70][32]int
 	E [70][32]int

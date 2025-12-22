@@ -12,9 +12,9 @@ var (
 
 func main() {
 	fmt.Sprintf("")
-	// test9()
-	initHash("12345678123", 1)
+	// initHash("12345678123", 1)
 	// listener()
+	
 }
 
 func initHash(input string, n int) {
@@ -23,4 +23,3 @@ func initHash(input string, n int) {
 	h.Encode()
 	writeDIMACS("hash.dimacs", h.F)
 }
-

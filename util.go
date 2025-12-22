@@ -1,8 +1,9 @@
 package main
 
 import (
-	"crypto/sha256"
+	sha256 "main/reference"
 	"os"
+	"strconv"
 )
 
 /* Util functions */
@@ -114,6 +115,10 @@ func reverse(a []int) []int {
 		r -= 1
 	}
 	return x
+}
+
+func itoa(i int) string {
+	return strconv.Itoa(i)
 }
 
 func quit() {

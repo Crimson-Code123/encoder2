@@ -188,19 +188,15 @@ func (d *digest) checkSum() [Size]byte {
 	} else {
 		t = 64 + 56 - len%64
 	}
-
 	// Length in bits.
 	len <<= 3
 	padlen := tmp[:t+8]
 	binary.BigEndian.PutUint64(padlen[t+0:], len)
 	d.Write(padlen)
-
 	if d.nx != 0 {
 		panic("d.nx != 0")
 	}
-
 	var digest [Size]byte
-
 	binary.BigEndian.PutUint32(digest[0:], d.h[0])
 	binary.BigEndian.PutUint32(digest[4:], d.h[1])
 	binary.BigEndian.PutUint32(digest[8:], d.h[2])
@@ -211,7 +207,6 @@ func (d *digest) checkSum() [Size]byte {
 	if !d.is224 {
 		binary.BigEndian.PutUint32(digest[28:], d.h[7])
 	}
-
 	return digest
 }
 
