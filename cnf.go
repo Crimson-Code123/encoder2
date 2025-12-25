@@ -202,7 +202,7 @@ func (f *Formula) Assign(z []int, x []int, n int) []int {
 }
 
 /* Rotate x into z and return z */
-func (f *Formula) RotateL(z []int, x []int, p int, n int) []int {
+func (f *Formula) RotateR(z []int, x []int, p int, n int) []int {
 	r := make([]int, 0)
 	for i := 0; i < n; i++ {
 		z[i] = x[(i+n-p)%n]
@@ -211,8 +211,9 @@ func (f *Formula) RotateL(z []int, x []int, p int, n int) []int {
 	return r
 }
 
-func (f *Formula) RotateR(z []int, x []int, p int, n int) []int {
-	return f.RotateL(z, x, n-p, n)
+func (f *Formula) RotateL(z []int, x []int, p int, n int) []int {
+	r := f.RotateR(z, x, n-p, n)
+	return r
 }
 
 /* sha256 sigma functions */

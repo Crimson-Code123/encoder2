@@ -53,7 +53,7 @@ func readDIMACS(name string) Formula {
 }
 
 func writeDIMACS(name string, formula Formula) {
-	file, err := os.OpenFile(name, os.O_CREATE|os.O_RDWR, 0666)
+	file, err := os.OpenFile(name, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0666)
 	if err != nil {
 		log.Println(err)
 	}
@@ -89,4 +89,3 @@ func readFile(name string) []byte {
 	}
 	return data
 }
-

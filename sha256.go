@@ -23,28 +23,35 @@ empty input
 /* Encode sha256 as CNF */
 func (h *Hash) Encode() {
 	//for len(h.P) >= 64 {
-	h.SetInput()
+	// h.SetInput()
 	h.InitVars()
 	h.EncodeConst()
 	if h.UseIVBlock {
 		h.EncodeIV()
 	}
-	for j := 0; j < 1; j++ {
+	// for len(h.P) >= h.ChunkSize {
+	for i := 0; i < 1; i++ {
 		//todo: chunked
 		for i := 0; i < 16; i++ {
 			// h.Mixer1(i)
 		}
 		for i := 16; i < 64; i++ {
+			// if i >= 18 {
+			// 	continue
+			// }
 			h.Mixer2(i)
 		}
 		h.AssignChain()
 		//Main loop
 		for i := 0; i < 64; i++ {
+			// if i >= 2 {
+			// 	continue
+			// }
 			h.MainLoop(i)
 		}
 		//final addition
 		h.Add()
-		//h.P = h.P[chunk:]
+		// h.P = h.P[h.ChunkSize:]
 	}
 	//assign to output
 	h.SetOutput()
@@ -191,6 +198,7 @@ func (h *Hash) MultiHash() {
 func NewSHA256(input string, n int) Hash {
 	h := Hash{}
 	h.Rounds = 64
+	h.ChunkSize = 16
 	h.F = NewFormula()
 	h.Input = input
 	h.Table = make([]VecTable, n)
@@ -320,6 +328,7 @@ type Hash struct {
 	OutputSize int        //
 	Input      string     //raw input
 	Output     string     //output string
+	ChunkSize  int        //chunk size in bytes
 	chain      [8][32]int //
 	tmp        [8][32]int //
 	out        [8][32]int //output hash value
