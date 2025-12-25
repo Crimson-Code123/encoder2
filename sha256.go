@@ -199,6 +199,7 @@ func NewSHA256(input string, n int) Hash {
 	h := Hash{}
 	h.Rounds = 64
 	h.ChunkSize = 16
+	h.FixedBits = 0 //
 	h.F = NewFormula()
 	h.Input = input
 	h.Table = make([]VecTable, n)
@@ -216,6 +217,14 @@ func (h *Hash) InitBitVec() {
 
 /* Init input bitvec */
 func (h *Hash) SetInput() {
+	for i := 0; i < h.FixedBits; i++ {
+		r := i / 32 //int size
+		c := i % 32
+		_ = r
+		_ = c
+		// h.F.FixedValue(h.W[r][c], bitVecToInt(h.W[r] >> c) & 1, 1)
+	}
+
 	q := len(h.Input) % 4
 	// fmt.Println(q)
 	if q != 0 {
@@ -325,6 +334,7 @@ type Hash struct {
 	Rounds     int        //64
 	UseIVBlock bool       //
 	InputSize  int        //in bits (always a multiple of the number of bits in a character)
+	FixedBits  int        //number of fixed input bits
 	OutputSize int        //
 	Input      string     //raw input
 	Output     string     //output string

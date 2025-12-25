@@ -135,3 +135,23 @@ func test11() {
 	fmt.Println(strconv.Itoa(x))
 	fmt.Println(strconv.Itoa(-x))
 }
+
+func test12() {
+	f := NewFormula()
+	x1 := f.NewVars(8, "x0")
+	x2 := f.NewVars(8, "x1")
+	x3 := f.NewVars(8, "x3")
+	f.Add2(x1, x2, x3, 4)
+	fmt.Println(x1, x2 ,x3)
+	x1 = f.RotateR(x1, x2, 2, 8)
+	f.Add2(x1, x2, x3, 2)
+	fmt.Println(x1, x2 ,x3)
+	x1 = f.RotateR(x1, x3, 2, 8)
+	fmt.Println(x1, x2 ,x3)
+	f.Add2(x1, x2, x3, 2)
+	
+	writeDIMACS("test12.dimacs", f)
+}
+
+
+
