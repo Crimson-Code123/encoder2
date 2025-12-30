@@ -23,7 +23,6 @@ empty input
 /* Encode sha256 as CNF */
 func (h *Hash) Encode() {
 	//for len(h.P) >= 64 {
-	// h.SetInput()
 	h.InitVars()
 	h.EncodeConst()
 	if h.UseIVBlock {
@@ -33,6 +32,10 @@ func (h *Hash) Encode() {
 	for i := 0; i < 1; i++ {
 		//todo: chunked
 		for i := 0; i < 16; i++ {
+			/* 
+				this portion should not require encoding
+				it is required for fixing the input bits, however
+			*/
 			// h.Mixer1(i)
 		}
 		for i := 16; i < 64; i++ {
@@ -55,6 +58,7 @@ func (h *Hash) Encode() {
 	}
 	//assign to output
 	h.SetOutput()
+	h.SetInput()
 }
 
 /* Set the output bits and hash output string */
@@ -116,7 +120,7 @@ func (h *Hash) Mixer1(i int) {
 	x := bitVecToInt(arrConv(h.P[j]))<<24 | bitVecToInt(arrConv(h.P[j+1]))<<16 | bitVecToInt(arrConv(h.P[j+2]))<<8 | bitVecToInt(arrConv(h.P[j+3]))
 	h.W[i] = [32]int(intToBitVec(x))
 	//todo: fix the input bits
-	//h.F.FixedValue()
+	//h.F.FixedValue()	
 }
 
 /* Mix w values */
