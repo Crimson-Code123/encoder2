@@ -10,7 +10,7 @@ var (
 
 func main() {
 	fmt.Sprintf("")
-	// initHash("12345678123", 1)
+	initHash("12345678123", 1)
 	// listener()
 	
 }

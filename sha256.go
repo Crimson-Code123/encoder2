@@ -221,6 +221,7 @@ func (h *Hash) InitBitVec() {
 
 /* Init input bitvec */
 func (h *Hash) SetInput() {
+	return
 	for i := 0; i < h.FixedBits; i++ {
 		r := i / 32 //int size
 		c := i % 32

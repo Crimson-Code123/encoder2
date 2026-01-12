@@ -17,7 +17,6 @@
 3. reduction.go
     - AddClauseGadget() - Needs to be finished
 
-
 4. cnf.go
     - ~~Rotates may be inverted~~
 
