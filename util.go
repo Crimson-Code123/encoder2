@@ -103,8 +103,16 @@ func bytesToBitVec(p []byte) []int {
 	return x
 }
 
-func stringToHex() {
+func bitVecToBytes(a []int) []byte {
+	
+}
 
+func stringToBitVec(s string) []int {
+	return bytesToBitVec([]byte(s))
+}
+
+func bitVecToString(a []int) string {
+	return string(bitVecToBytes(a))
 }
 
 func reverse(a []int) []int {

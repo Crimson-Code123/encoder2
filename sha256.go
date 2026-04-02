@@ -13,6 +13,20 @@ import "fmt"
   	the first word of the input message "abc" after padding is 0x61626380
 */
 
+/* todo
+functions -
+	Mixer1 -
+	initvars -
+	setinput -
+	initbitvec -
+	Encode - chunking
+	Setoutput -
+*/
+
+/*
+
+ */
+
 /* test values
 empty input
 2080933965 1779033703 3144134277 1013904242 415752866 1359893119 2600822924 528734635 - abc values, 1 round
@@ -21,35 +35,32 @@ empty input
 */
 
 /* Encode sha256 as CNF */
-func (h *Hash) Encode() {
-	//for len(h.P) >= 64 {
-	h.InitVars()
-	h.EncodeConst()
+func (h *Hash) Encode(j int) {
+	h.UseIVBlock = true
+	// for len(h.P) >= 64 {
+
+	h.InitVars(j)
+	//h.SetInput()
+	h.EncodeConst(j)
 	if h.UseIVBlock {
 		h.EncodeIV()
+		h.UseIVBlock = false
 	}
 	// for len(h.P) >= h.ChunkSize {
-	for i := 0; i < 1; i++ {
+	for x := 0; x < 1; x++ {
 		//todo: chunked
 		for i := 0; i < 16; i++ {
-			/* 
+			/*
 				this portion should not require encoding
 				it is required for fixing the input bits, however
 			*/
-			// h.Mixer1(i)
+			h.Mixer1(i)
 		}
 		for i := 16; i < 64; i++ {
-			// if i >= 18 {
-			// 	continue
-			// }
 			h.Mixer2(i)
 		}
 		h.AssignChain()
-		//Main loop
 		for i := 0; i < 64; i++ {
-			// if i >= 2 {
-			// 	continue
-			// }
 			h.MainLoop(i)
 		}
 		//final addition
@@ -58,7 +69,7 @@ func (h *Hash) Encode() {
 	}
 	//assign to output
 	h.SetOutput()
-	h.SetInput()
+	// h.SetInput(h.out)
 }
 
 /* Set the output bits and hash output string */
@@ -68,7 +79,7 @@ func (h *Hash) SetOutput() {
 		//todo: fix output bits (get from btc difficulty)
 		h.F.FixedValue(arrConv(h.out[i]), uint32(0), 32)
 	}
-	h.Output = ""
+	// h.Output = bitVecToString(h.out)
 }
 
 /* Final addition in sha256 loop */
@@ -116,11 +127,32 @@ func (h *Hash) MainLoop(i int) {
 
 /* Mix p values into w, padded as big endian */
 func (h *Hash) Mixer1(i int) {
+
 	j := i * 4
 	x := bitVecToInt(arrConv(h.P[j]))<<24 | bitVecToInt(arrConv(h.P[j+1]))<<16 | bitVecToInt(arrConv(h.P[j+2]))<<8 | bitVecToInt(arrConv(h.P[j+3]))
 	h.W[i] = [32]int(intToBitVec(x))
 	//todo: fix the input bits
-	//h.F.FixedValue()	
+	//h.F.FixedValue()
+	
+}
+
+/* Fix the input bits and pad the input string into a bitvec */
+func (h *Hash) SetInput(s string) {
+	h.FixInput()
+	//todo: set h input from s
+	q := len(h.Input) % 4
+	// fmt.Println(q)
+	if q != 0 {
+		h.Input += padString(4 - q - 1)
+	}
+	// fmt.Println(h.Input)
+	q = len(h.Input) / 4
+	h.P = make([][32]int, len(h.Input))
+	// quit()
+	for i := 0; i < len(h.Input); i += 4 {
+		// h.P[i] = [32]int(byteToBitBec(h.Input[i]))
+		// h.P[i] = shaPaddedMsg(h.Input[i : i+4])
+	}
 }
 
 /* Mix w values */
@@ -164,34 +196,37 @@ func (h *Hash) EncodeIV() {
 }
 
 /* Encode k values */
-func (h *Hash) EncodeConst() {
+func (h *Hash) EncodeConst(j int) {
 	for i := 0; i < 64; i++ {
-		h.K[i] = [32]int(h.F.NewVars(len(h.K[i]), fmt.Sprintf("k%d", i)))
+		h.K[i] = [32]int(h.F.NewVars(len(h.K[i]), fmt.Sprintf("k%d%d", i, j)))
 		h.F.FixedValue(arrConv(h.K[i]), _K[i], 32)
 	}
 }
 
 /* Init (chunk dependent) named cnf variables */
-func (h *Hash) InitVars() {
+func (h *Hash) InitVars(d int) {
 	for i := 0; i < h.Rounds; i++ {
-		h.W[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("w%d", i)))
+		h.W[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("w%d%d", i, d)))
 	}
 	for i := 0; i < 8; i++ {
-		h.chain[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("chain%d", i)))
+		h.chain[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("chain%d%d", i, d)))
 	}
 	for i := 0; i < 8; i++ {
-		h.tmp[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("tmp%d", i)))
+		h.tmp[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("tmp%d%d", i, d)))
 	}
 	for i := 0; i < h.Rounds; i++ {
-		h.A[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("a%d", i)))
-		h.E[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("e%d", i)))
+		h.A[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("a%d%d", i, d)))
+		h.E[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("e%d%d", i, d)))
 	}
 }
 
 /* Chained hashes */
 func (h *Hash) MultiHash() {
+	h.SetInput(h.Input)
 	for i := 0; i < len(h.Table); i++ {
-		h.Encode()
+		
+		h.Encode(i)
+		h.SetInput(bitVecToString((h.out)))
 		h.Input = h.Output
 		//output vars moved to input
 		// h.InitBitVec()
@@ -214,35 +249,18 @@ func NewSHA256(input string, n int) Hash {
 
 /* Init the hashes bit vectors */
 func (h *Hash) InitBitVec() {
-	h.SetInput()
+	h.SetInput("")
 	// h.InitVars()
 	h.InputSize = len(h.Input) * 8
 }
 
-/* Init input bitvec */
-func (h *Hash) SetInput() {
-	return
+/* Fix input bits (mixing values) */
+func (h *Hash) FixInput() {
 	for i := 0; i < h.FixedBits; i++ {
 		r := i / 32 //int size
 		c := i % 32
-		_ = r
-		_ = c
-		// h.F.FixedValue(h.W[r][c], bitVecToInt(h.W[r] >> c) & 1, 1)
-	}
-
-	q := len(h.Input) % 4
-	// fmt.Println(q)
-	if q != 0 {
-		h.Input += padString(4 - q - 1)
-	}
-	// fmt.Println(h.Input)
-	q = len(h.Input) / 4
-	h.P = make([][32]int, len(h.Input))
-	// quit()
-	for i := 0; i < len(h.Input); i += 4 {
-		// h.P[i] = [32]int(byteToBitBec(h.Input[i]))
-		// h.P[i] = shaPaddedMsg(h.Input[i : i+4])
-
+		x := bitVecToInt(arrConv(h.W[r]))
+		h.F.FixedValue(intToBitVec(uint32(h.W[r][c])), x>>c&1, 1)
 	}
 }
 

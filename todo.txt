@@ -16,4 +16,6 @@ Good progress on sha256 and cnf.
 Split out sha256 functions.
 Added some verification tests
 
+2026-4-01
+
 
