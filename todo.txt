@@ -18,4 +18,9 @@ Added some verification tests
 
 2026-4-01
 
+2026-04-07
+Working on utility functions
+Should have a way of marking functions as verified working
+
+
 

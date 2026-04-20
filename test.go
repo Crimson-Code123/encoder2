@@ -100,17 +100,17 @@ func test6() {
 
 func test7() {
 	vec := intToBitVec(1234)
-	fmt.Println("BV:", vec)
+	fmt.Println("Big BV:", vec)
 	x := bitVecToInt(reverse(vec))
 	fmt.Println("Int:", x)
 }
 
 func test8() {
 	vec := intToBitVec(1234)
-	fmt.Println("BV :", vec)
+	fmt.Println("Big BV  :", vec)
 	rev := reverse(vec)
-	fmt.Println("Rev:", rev)
-	fmt.Println("Bak:", reverse(rev))
+	fmt.Println("Little Rev:", rev)
+	fmt.Println("Big Bak :", reverse(rev))
 }
 
 /* sha256 string padding tests */
@@ -153,5 +153,43 @@ func test12() {
 	writeDIMACS("test12.dimacs", f)
 }
 
+func test13() {
+	p := byte(200)
+	bv := byteToBitVec(p)
+	f := bitVecToByte((bv)
+	if p != f {
+		panic()
+	}
+	fmt.Println(bv)
+	fmt.Println(reverse(bv))
+}
 
+/* tests 7 and 8 combined */
+func test14() {
+	test7()
+	test8()
+}
+
+
+func test15() {
+	x := make([]int, 0)
+	x = append(x, 1234)
+	b := bitVecToBytes(x)
+	fmt.Println(b)
+}
+
+func test16() {
+	fmt.Println(intToBytes(123))
+	x := stringToBitVec("123")
+	fmt.Println(x)
+	fmt.Println(bitVecToString(x))
+}
+
+func test17() {
+
+}
+
+func test18() {
+	
+}
 
