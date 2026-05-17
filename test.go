@@ -156,9 +156,9 @@ func test12() {
 func test13() {
 	p := byte(200)
 	bv := byteToBitVec(p)
-	f := bitVecToByte((bv)
+	f := bitVecToByte((bv))
 	if p != f {
-		panic()
+		panic("")
 	}
 	fmt.Println(bv)
 	fmt.Println(reverse(bv))
@@ -179,14 +179,17 @@ func test15() {
 }
 
 func test16() {
-	fmt.Println(intToBytes(123))
+	// fmt.Println(intToBytes(123))
 	x := stringToBitVec("123")
+	// fmt.Println(bitVecToBytes(x))
 	fmt.Println(x)
-	fmt.Println(bitVecToString(x))
+	y := bitVecToString(x)
+	fmt.Println(y)
+	fmt.Println(stringToBitVec(y))
 }
 
 func test17() {
-
+	
 }
 
 func test18() {

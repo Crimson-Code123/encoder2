@@ -22,7 +22,7 @@ def timer():
 	return tcx
 
 pool = ('solo.ckpool.org' , 3333)
-address = ''
+address = 'bc1q03zbvbamcx77crptfga5e88cmubnea0jctzdfq'
 
 print(Back.BLUE , Fore.WHITE , 'WALLET:' , Fore.BLACK , str(address) , Style.RESET_ALL)
 
@@ -61,7 +61,8 @@ def bitcoin_miner(t , restarted = False):
 	merkle_root = ''.join([merkle_root[i] + merkle_root[i + 1] for i in range(0 , len(merkle_root) , 2)][: :-1])
 	work_on = get_current_block_height()
 	ctx.nHeightDiff[work_on + 1] = 0
-	_diff = int("00000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" , 16)
+	#000000000000000000013f3344a94d3383c4b97f92d51dd283514a58a035b21f
+	_diff = int("0000000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" , 16)
 	
 	logg('[*] Working to solve block with height {}'.format(work_on + 1))
 	print(Fore.MAGENTA, '[', timer(), ']', Fore.YELLOW, '[*] Working to solve block with ', Fore.RED, 'height {}'.format(work_on + 1))
@@ -84,7 +85,7 @@ def bitcoin_miner(t , restarted = False):
 		hash = hashlib.sha256(hashlib.sha256(binascii.unhexlify(blockheader)).digest()).digest()
 	
 		hash = binascii.hexlify(hash).decode()
-		if hash.startswith('0000000'):
+		if hash.startswith('0000000000000000000'):
 			logg('[*] New hash: {} for block {}'.format(hash , work_on + 1))
 			# print(Fore.MAGENTA, '[', timer() , ']', Fore.YELLOW, '[*] New hash:', Fore.WHITE, '{} for block', Fore.WHITE, {}'.format(hash , work_on + 1)
 			print(Fore.MAGENTA, '[', timer(), ']', Fore.BLUE, 'Hash:', str(hash))
@@ -151,10 +152,10 @@ def StartMining():
 
 def check_for_shutdown(t):
 	n = t.n
-	# if ctx.fShutdown:
-	# 	if n != -1 :
-	# 		ctx.listfThreadRunning[n] = False
-	# 		t.exit = True
+	if ctx.fShutdown:
+		if n != -1 :
+			ctx.listfThreadRunning[n] = False
+			t.exit = True
 
 class ExitedThread(threading.Thread):
 	def __init__(self , arg , n) :
@@ -238,4 +239,4 @@ class NewSubscribeThread(ExitedThread):
 if __name__ == '__main__':
 	signal(SIGINT , handler)
 	block_listener(None)
-	#StartMining()
+	StartMining()

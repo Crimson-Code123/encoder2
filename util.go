@@ -17,7 +17,6 @@ func sha256sum(data string) string {
 	return string(x)
 }
 
-
 /*  */
 func shaPaddedMsg(s string) [32]int {
 	x := make([]int, 0)
@@ -33,16 +32,15 @@ func padString(r int) string {
 	s += "€" //0x80
 	if r != 0 {
 		for i := 0; i < r; i++ {
-			s += "0" 
+			s += "0"
 		}
 	}
 	return s
 }
 
-
 // func _8to32(item... [8]int) [32]int {
 // 	r := make([]int, 0)
-// 	if len(item) != 4 {
+// 	if len(item) != 4 {0000000
 // 		return [32]int(r)
 // 	}
 // 	for i := 0; i < len(item); i++ {
@@ -51,6 +49,16 @@ func padString(r int) string {
 // 	return [32]int(r)
 // }
 
+/*  */
+// func intToBytes(i int) []byte {
+// 	r := make([]byte, 0)
+// 	for x := 0; x < 4; x++ {
+// 		var t byte
+// 		t = t << 1
+// 		r = append(r, t)
+// 	}
+// 	return r
+// }
 
 /* Convert to fixed length  */
 func arrConv(item [32]int) []int {
@@ -68,7 +76,6 @@ func arrConv8(item [8]int) []int {
 	}
 	return r
 }
-
 
 /* output is big endian */
 func intToBitVec(value uint32) []int {
@@ -90,21 +97,21 @@ func bitVecToInt(vec []int) uint32 {
 }
 
 /* works */
-func byteToBitVec(p byte) []int {
-	x := make([]int, 0)
-	for i := 0; i < 8; i++ {
-		r := (p >> i) & 1
-		x = append(x, int(r))
-	}
-	return x
-}
-
-/* works */
 func bitVecToByte(a []int) byte {
 	var x byte
 	a = reverse(a)
 	for i := 0; i < 8; i++ {
 		x = x<<1 | byte(a[i])
+	}
+	return x
+}
+
+/* works */
+func byteToBitVec(p byte) []int {
+	x := make([]int, 0)
+	for i := 0; i < 8; i++ {
+		r := (p >> i) & 1
+		x = append(x, int(r))
 	}
 	return x
 }
@@ -118,8 +125,6 @@ func bytesToBitVec(p []byte) []int {
 	return x
 }
 
-
-
 /* convert input to continuous array */
 func hashOutput(x [8][32]int) []int {
 	r := make([]int, 0)
@@ -132,21 +137,11 @@ func hashOutput(x [8][32]int) []int {
 	return r
 }
 
-/*  */
-func intToBytes(i int) []byte {
-	r := make([]byte, 0)
-	for x := 0; x < 4; x++ {
-		var t byte
-		t = t << 1 
-		r = append(r, t)
-	}
-	return r
-}
-
+/* works */
 func bitVecToBytes(a []int) []byte {
 	r := make([]byte, 0)
-	for i := 0; i < len(a); i++ {
-		r = append(r, intToBytes(i)...)
+	for i := 0; i < len(a); i += 8 {
+		r = append(r, bitVecToByte(a[i:i+8]))
 	}
 	return r
 }

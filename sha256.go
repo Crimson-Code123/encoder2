@@ -81,6 +81,7 @@ func (h *Hash) SetOutput() {
 		h.F.FixedValue(arrConv(h.out[i]), uint32(0), 32)
 	}
 	// fmt.Println(hashOutput(h.out))
+	/*  */
 	h.Output = bitVecToString(hashOutput(h.out))
 }
 
@@ -171,14 +172,14 @@ func (h *Hash) Mixer1(i int) {
 	for( int i=0; i<8; i++ ) {
 		hash[i] = H[i];
 	}*/
-
+	/*  */
 	// j := i * 4
 	// x := bitVecToInt(arrConv(h.P[j]))<<24 | bitVecToInt(arrConv(h.P[j+1]))<<16 | bitVecToInt(arrConv(h.P[j+2]))<<8 | bitVecToInt(arrConv(h.P[j+3]))
 	// h.W[i] = [32]int(intToBitVec(x))
 	// fmt.Println(intToBitVec(x))
 	//todo: fix the input bits
 	//h.F.FixedValue()
-
+	
 }
 
 
