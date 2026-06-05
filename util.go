@@ -6,6 +6,37 @@ import (
 	"strconv"
 )
 
+/*
+	unsigned long long ml = size * 8;
+	int i = size;
+	vector<unsigned char> M(m, m+size);
+	M.push_back(0x80);
+	while( M.size() % 64 != 56 ) M.push_back(0x00);
+	//big endian
+	M.push_back((ml >> 56) & 0xFF);
+	M.push_back((ml >> 48) & 0xFF);
+	M.push_back((ml >> 40) & 0xFF);
+	M.push_back((ml >> 32) & 0xFF);
+	M.push_back((ml >> 24) & 0xFF);
+	M.push_back((ml >> 16) & 0xFF);
+	M.push_back((ml >> 8) & 0xFF);
+	M.push_back((ml) & 0xFF);
+	size = M.size();
+	unsigned w[64]; //
+	 Process the message in successive 512-bit chunks:
+	   break message into 512-bit chunks
+	for( int chunk=0; chunk<size; chunk+=64 )
+	{
+		for( int i=0; i<16; i++ ) {
+			w[i] = 0;
+			for( int j=0; j<4; j++ ) {
+				w[i] = (w[i] << 8) | M[chunk + i*4 + j];
+			}
+		}
+		sha256_comp(w, H, rounds, true);
+	}
+*/
+
 /* Util functions */
 
 func sha256sum(data string) string {
@@ -17,7 +48,6 @@ func sha256sum(data string) string {
 	return string(x)
 }
 
-/*  */
 func shaPaddedMsg(s string) [32]int {
 	x := make([]int, 0)
 	for i := 0; i < len(s); i++ {
@@ -27,15 +57,33 @@ func shaPaddedMsg(s string) [32]int {
 }
 
 /* pad sha256 input message */
-func padString(r int) string {
+func padString(r int, x string) string {
 	var s string
 	s += "€" //0x80
-	if r != 0 {
-		for i := 0; i < r; i++ {
-			s += "0"
-		}
+	//	while( M.size() % 64 != 56 ) M.push_back(0x00);
+	// fmt.Println(len(s))
+	// for len(s)%64 != 56 {
+	for len(s) % 16 != 15 {
+		s += "0"
 	}
+	// if r != 0 {
+	// 	for i := 0; i < r; i++ {
+	// 		s += "0"
+	// 	}
+	// }
+	//pad size, 64 bit big endian
+	
 	return s
+}
+
+/* get difficulty bits, todo: online updates. */
+func calcDifficulty(x string) int {
+	/* todo: fix output bits (get from btc difficulty)
+	64 chars, 256 bits (152 bits as of may 2026)
+	0000000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+	*/
+	diff := len(x) * 8
+	return diff
 }
 
 // func _8to32(item... [8]int) [32]int {
@@ -87,10 +135,23 @@ func intToBitVec(value uint32) []int {
 	return x
 }
 
+/* output is big endian */
+func int64ToBitVec(value uint64) []int {
+	x := make([]int, 0)
+	for i := 0; i < 64; i++ {
+		r := (value >> i) & 1
+		x = append(x, int(r))
+	}
+	return x
+}
+
 /* works */
 func bitVecToInt(vec []int) uint32 {
 	var x int
-	for i := 0; i < 32; i++ {
+	if len(vec) > 32 {
+		return 0
+	}
+	for i := 0; i < len(vec); i++ {
 		x = x<<1 | vec[i]
 	}
 	return uint32(x)

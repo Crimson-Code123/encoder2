@@ -120,7 +120,7 @@ func test9() {
 	// fmt.Println("Pad byte BV:", bytesToBitVec([]byte("€")))
 	// fmt.Println("Padded:", shaPaddedMsg("123"))
 	for i := 0; i < 10; i++ {
-		fmt.Println(padString(i))
+		fmt.Println(padString(i, ""))
 	}
 }
 

@@ -15,17 +15,13 @@ import "fmt"
 
 /* todo
 functions -
-	Mixer1 - Needs to be verified
+	Mixer1 - Chain inputs into w
 	initvars - Vars may need to be
-	setinput - 
+	setinput - verify
 	Encode - chunking
-	Setoutput - 
-
+	Setoutput - should work, verify
+	padstring -
 */
-
-/*
-
- */
 
 /* test values
 empty input
@@ -37,25 +33,20 @@ empty input
 /* Encode sha256 as CNF */
 func (h *Hash) Encode(j int) {
 	h.UseIVBlock = true
-
-	// for len(h.P) >= 64 {
-
-	h.InitVars(j)
-	h.EncodeConst(j)
-	if h.UseIVBlock {
-		h.EncodeIV()
-		h.UseIVBlock = false
-	}
-	/*  */
+	// for chunk := 0; chunk>size; chunk += 64 {
 	// for len(h.P) >= h.ChunkSize {
 	for x := 0; x < 1; x++ {
-		//todo: chunked
-		for i := 0; i < 16; i++ {
-			/*
-				this portion should not require encoding
-				it is required for fixing the input bits, however
-			*/
-			h.Mixer1(i)
+		h.InitVars(j)
+		h.EncodeConst(j)
+		if h.UseIVBlock {
+			h.EncodeIV()
+			h.UseIVBlock = false
+		}
+		if mixer1 {
+			for i := 0; i < 16; i++ {
+				// it is required for fixing the input bits
+				h.Mixer1(i)
+			}
 		}
 		for i := 16; i < 64; i++ {
 			h.Mixer2(i)
@@ -74,15 +65,24 @@ func (h *Hash) Encode(j int) {
 
 /* Set the output bits and hash output string */
 func (h *Hash) SetOutput() {
+	// diff := calcDifficulty("")
+	diff := 162
+	//
 	for i := 0; i < 8; i++ {
 		h.out[i] = [32]int(h.F.Assign(arrConv(h.out[i]), arrConv(h.tmp[i]), 32))
-		// fmt.Println(h.out[i])
-		//todo: fix output bits (get from btc difficulty)
-		h.F.FixedValue(arrConv(h.out[i]), uint32(0), 32)
+		for j := 0; j < 32; j++ {
+			// fmt.Println(h.out[i])
+
+			if diff != 0 {
+				h.F.FixedValue(intToBitVec(uint32(h.out[i][j])), uint32(0), 32)
+				// h.F.FixedValue(arrConv(h.out[i]), uint32(0), 32)
+				diff -= 1
+			}
+		}
 	}
 	// fmt.Println(hashOutput(h.out))
-	/*  */
 	h.Output = bitVecToString(hashOutput(h.out))
+	// fmt.Println(h.Output)
 }
 
 /* Final addition in sha256 loop */
@@ -130,79 +130,40 @@ func (h *Hash) MainLoop(i int) {
 
 /* Mix p values into w, padded as big endian */
 func (h *Hash) Mixer1(i int) {
-	/* 
-	Pre-processing:
-	  append the bit '1' to the message
-	  append k bits '0', where k is the minimum number >= 0 such that the resulting message
-	  length (modulo 512 in bits) is 448.
-	  append length of message (without the '1' bit or padding), in bits, as 64-bit big-endian integer
-	  (this will make the entire post-processed length a multiple of 512 bits)
-	unsigned long long ml = size * 8;
-	int i = size;
-	vector<unsigned char> M(m, m+size);
-	M.push_back(0x80);
-	while( M.size() % 64 != 56 ) M.push_back(0x00);
-	//big endian
-	M.push_back((ml >> 56) & 0xFF);
-	M.push_back((ml >> 48) & 0xFF);
-	M.push_back((ml >> 40) & 0xFF);
-	M.push_back((ml >> 32) & 0xFF);
-	M.push_back((ml >> 24) & 0xFF);
-	M.push_back((ml >> 16) & 0xFF);
-	M.push_back((ml >> 8) & 0xFF);
-	M.push_back((ml) & 0xFF);
-	size = M.size();
-	unsigned w[64]; //
-	/* Process the message in successive 512-bit chunks:
-	   break message into 512-bit chunks 
-	for( int chunk=0; chunk<size; chunk+=64 )
-	{
-		/*    create a 64-entry message schedule array w[0..63] of 32-bit words
-			  (The initial values in w[0..63] don't matter, so many implementations zero them here)
-			  copy chunk into first 16 words w[0..15] of the message schedule array
-		//
-		for( int i=0; i<16; i++ ) {
-			w[i] = 0;
-			for( int j=0; j<4; j++ ) {
-				w[i] = (w[i] << 8) | M[chunk + i*4 + j];
-			}
-		}
-		sha256_comp(w, H, rounds, true);
-	}
-	for( int i=0; i<8; i++ ) {
-		hash[i] = H[i];
-	}*/
-	/*  */
-	// j := i * 4
+	j := i * 4
+	_ = j
 	// x := bitVecToInt(arrConv(h.P[j]))<<24 | bitVecToInt(arrConv(h.P[j+1]))<<16 | bitVecToInt(arrConv(h.P[j+2]))<<8 | bitVecToInt(arrConv(h.P[j+3]))
+	// fmt.Println(x)
+	var x uint32
+	for k := 0; k < 4; k++ {
+		// x = (x << 8) | bitVecToInt(arrConv(h.P[j+k]))
+	}
+	// fmt.Println(x)
 	// h.W[i] = [32]int(intToBitVec(x))
-	// fmt.Println(intToBitVec(x))
-	//todo: fix the input bits
-	//h.F.FixedValue()
-	
+	//
+	h.W[i] = [32]int(h.F.Assign(arrConv(h.W[i]), intToBitVec(x), 32))
+
 }
-
-
 
 /* Fix the input bits and pad the input string into a bitvec */
 func (h *Hash) SetInput(s string) {
-	h.FixInput()
-	//todo: set h input from s
-
-	q := len(h.Input) % 4
-	// fmt.Println(q)
-	if q != 0 {
-		h.Input += padString(4 - q - 1)
-	}
-	// fmt.Println(h.Input)
-	q = len(h.Input) / 4
-	
+	h.Input = s
+	// h.FixInput()
+	// q := len(h.Input) % 4
+	// // fmt.Println(q)
+	// if q != 0 {
+	// 	h.Input += padString(4 - q - 1)
+	// }
+	// // fmt.Println(h.Input)
+	// q = len(h.Input) / 4
+	s = padString(0, s)
 	h.P = make([][32]int, len(h.Input))
-	for i := 0; i < len(h.Input); i += 4 {
-		// h.P[i] = [32]int(byteToBitVec(h.Input[i]))
-		// h.P[i] = shaPaddedMsg(h.Input[i : i+4])
+	x := stringToBitVec(s)
+	_ = x
+	for i := 0; i < len(h.Input); i++ {
+		h.P[i] = [32]int(x)
+		// h.P[i] =
 	}
-
 }
 
 /* Mix w values */
@@ -272,12 +233,11 @@ func (h *Hash) InitVars(d int) {
 
 /* Chained hashes */
 func (h *Hash) MultiHash() {
-	h.SetInput(h.Input)
+	// h.SetInput(h.Input)
 	for i := 0; i < len(h.Table); i++ {
-		
 		h.Encode(i)
-		h.SetInput(bitVecToString((hashOutput(h.out))))
-		h.Input = h.Output
+		// h.SetInput(bitVecToString((hashOutput(h.out))))
+		h.SetInput(h.Output)
 		//output vars moved to input
 		// h.InitBitVec()
 	}
@@ -288,9 +248,10 @@ func NewSHA256(input string, n int) Hash {
 	h := Hash{}
 	h.Rounds = 64
 	h.ChunkSize = 16
-	h.FixedBits = 0 //
 	h.F = NewFormula()
 	h.Input = input
+	h.FixedBits = len(input) * 8
+	h.SetInput(input)
 	h.Table = make([]VecTable, n)
 	h.UseIVBlock = true
 	// h.InitBitVec()
@@ -386,12 +347,6 @@ var _IV = []uint32{
 	0x1f83d9ab,
 	0x5be0cd19,
 }
-
-/*
-    create a 64-entry message schedule array w[0..63] of 32-bit words
-	(The initial values in w[0..63] don't matter, so many implementations zero them here)
-    copy chunk into first 16 words w[0..15] of the message schedule array (512 bits)
-*/
 
 type Hash struct {
 	F          Formula
