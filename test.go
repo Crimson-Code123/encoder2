@@ -120,7 +120,7 @@ func test9() {
 	// fmt.Println("Pad byte BV:", bytesToBitVec([]byte("€")))
 	// fmt.Println("Padded:", shaPaddedMsg("123"))
 	for i := 0; i < 10; i++ {
-		fmt.Println(padString(i, ""))
+		fmt.Println(padString(""))
 	}
 }
 
@@ -170,7 +170,6 @@ func test14() {
 	test8()
 }
 
-
 func test15() {
 	x := make([]int, 0)
 	x = append(x, 1234)
@@ -189,10 +188,37 @@ func test16() {
 }
 
 func test17() {
-	
+	// h := NewSHA256("123", 1)
+	// h.MultiHash()
+	// h.Assert()
+	fmt.Println(sha256sum("1234567"))
+	fmt.Println(sha256sum(padString("1234567")))
+
 }
 
 func test18() {
+	h := NewSHA256("123", 1)
+	// h.InitVars(1)
+	h.Encode(1, false)
+	// h.SetOutput(false)
+	fmt.Println("out:", h.out)
+	// fmt.Println(len(h.out))
+	fmt.Println("output", h.Output)
 	
 }
+
+func test19() {
+	x := readDIMACS("hash.dimacs")
+	fmt.Println(x)
+	
+}
+
+func test20() {
+	
+}
+
+func test21() {
+	
+}
+
 

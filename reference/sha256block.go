@@ -7,7 +7,6 @@
 package sha256
 
 import (
-	"fmt"
 	"math/bits"
 )
 
@@ -106,7 +105,7 @@ func blockGeneric(dig *digest, p []byte) {
 			c = b
 			b = a
 			a = t1 + t2
-			fmt.Println(a, b, c, d, e, f, g, h)
+			// fmt.Println(a, b, c, d, e, f, g, h)
 		}
 		//final addition
 		h0 += a
@@ -117,7 +116,7 @@ func blockGeneric(dig *digest, p []byte) {
 		h5 += f
 		h6 += g
 		h7 += h
-		fmt.Println(h0, h1, h2, h3, h4, h5, h6, h7)
+		// fmt.Println(h0, h1, h2, h3, h4, h5, h6, h7)
 		p = p[chunk:]
 	}
 	//assign

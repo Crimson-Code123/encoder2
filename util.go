@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	sha256 "main/reference"
 	"os"
 	"strconv"
@@ -23,7 +24,7 @@ import (
 	M.push_back((ml) & 0xFF);
 	size = M.size();
 	unsigned w[64]; //
-	 Process the message in successive 512-bit chunks:
+	Process the message in successive 512-bit chunks:
 	   break message into 512-bit chunks
 	for( int chunk=0; chunk<size; chunk+=64 )
 	{
@@ -37,7 +38,14 @@ import (
 	}
 */
 
+
+
 /* Util functions */
+
+func assertOutput() bool {
+
+	return false
+}
 
 func sha256sum(data string) string {
 	h := sha256.Sum256([]byte(data))
@@ -45,7 +53,7 @@ func sha256sum(data string) string {
 	for i := 0; i < len(h); i++ {
 		x = append(x, h[i])
 	}
-	return string(x)
+	return fmt.Sprintf("%x", string(x))
 }
 
 func shaPaddedMsg(s string) [32]int {
@@ -57,13 +65,13 @@ func shaPaddedMsg(s string) [32]int {
 }
 
 /* pad sha256 input message */
-func padString(r int, x string) string {
+func padString(x string) string {
 	var s string
 	s += "€" //0x80
-	//	while( M.size() % 64 != 56 ) M.push_back(0x00);
+	// while( M.size() % 64 != 56 ) M.push_back(0x00);
 	// fmt.Println(len(s))
 	// for len(s)%64 != 56 {
-	for len(s) % 16 != 15 {
+	for len(s)%16 != 15 {
 		s += "0"
 	}
 	// if r != 0 {
@@ -72,8 +80,12 @@ func padString(r int, x string) string {
 	// 	}
 	// }
 	//pad size, 64 bit big endian
-	
-	return s
+	var z uint64
+	z = uint64(len(x) + len(s))
+	zb := bitVecToString(reverse(int64ToBitVec(z)))
+	x += s
+	x += zb
+	return x
 }
 
 /* get difficulty bits, todo: online updates. */
@@ -85,28 +97,6 @@ func calcDifficulty(x string) int {
 	diff := len(x) * 8
 	return diff
 }
-
-// func _8to32(item... [8]int) [32]int {
-// 	r := make([]int, 0)
-// 	if len(item) != 4 {0000000
-// 		return [32]int(r)
-// 	}
-// 	for i := 0; i < len(item); i++ {
-// 		r = append(r, item[i])
-// 	}
-// 	return [32]int(r)
-// }
-
-/*  */
-// func intToBytes(i int) []byte {
-// 	r := make([]byte, 0)
-// 	for x := 0; x < 4; x++ {
-// 		var t byte
-// 		t = t << 1
-// 		r = append(r, t)
-// 	}
-// 	return r
-// }
 
 /* Convert to fixed length  */
 func arrConv(item [32]int) []int {
@@ -232,3 +222,25 @@ func itoa(i int) string {
 func quit() {
 	os.Exit(0)
 }
+
+// func _8to32(item... [8]int) [32]int {
+// 	r := make([]int, 0)
+// 	if len(item) != 4 {0000000
+// 		return [32]int(r)
+// 	}
+// 	for i := 0; i < len(item); i++ {
+// 		r = append(r, item[i])
+// 	}
+// 	return [32]int(r)
+// }
+
+/*  */
+// func intToBytes(i int) []byte {
+// 	r := make([]byte, 0)
+// 	for x := 0; x < 4; x++ {
+// 		var t byte
+// 		t = t << 1
+// 		r = append(r, t)
+// 	}
+// 	return r
+// }

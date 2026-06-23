@@ -15,12 +15,11 @@ import "fmt"
 
 /* todo
 functions -
-	Mixer1 - Chain inputs into w
-	initvars - Vars may need to be
+	Encode - chunking,
+	Setoutput - should work, verify, output bits
+	padstring - verify
 	setinput - verify
-	Encode - chunking
-	Setoutput - should work, verify
-	padstring -
+	Mixer1 - Chain inputs into w
 */
 
 /* test values
@@ -31,7 +30,7 @@ empty input
 */
 
 /* Encode sha256 as CNF */
-func (h *Hash) Encode(j int) {
+func (h *Hash) Encode(j int, output bool) {
 	h.UseIVBlock = true
 	// for chunk := 0; chunk>size; chunk += 64 {
 	// for len(h.P) >= h.ChunkSize {
@@ -44,7 +43,6 @@ func (h *Hash) Encode(j int) {
 		}
 		if mixer1 {
 			for i := 0; i < 16; i++ {
-				// it is required for fixing the input bits
 				h.Mixer1(i)
 			}
 		}
@@ -60,29 +58,71 @@ func (h *Hash) Encode(j int) {
 		// h.P = h.P[h.ChunkSize:]
 	}
 	//assign to output
-	h.SetOutput()
+	h.SetOutput(output)
 }
 
 /* Set the output bits and hash output string */
-func (h *Hash) SetOutput() {
+func (h *Hash) SetOutput(output bool) {
 	// diff := calcDifficulty("")
 	diff := 162
-	//
+	// fmt.Println("out", h.out)
+	x := stringToBitVec(sha256sum("123"))
+	fmt.Println("x:", x)
 	for i := 0; i < 8; i++ {
 		h.out[i] = [32]int(h.F.Assign(arrConv(h.out[i]), arrConv(h.tmp[i]), 32))
+		// h.F.FixedValue(arrConv(h.out[i]), uint32(x[i]), 32)
 		for j := 0; j < 32; j++ {
 			// fmt.Println(h.out[i])
-
-			if diff != 0 {
-				h.F.FixedValue(intToBitVec(uint32(h.out[i][j])), uint32(0), 32)
-				// h.F.FixedValue(arrConv(h.out[i]), uint32(0), 32)
-				diff -= 1
+			if output == false {
+				h.F.FixedValue(arrConv(h.out[i]), uint32(x[i+j]), 32)
+				// h.F.FixedValue(arrConv(h.out[i][j]), uint32(x[j]), 32)
+			} else {
+				if diff != 0 {
+					h.F.FixedValue(intToBitVec(uint32(h.out[i][j])), uint32(0), 32)
+					// h.F.FixedValue(arrConv(h.out[i]), uint32(0), 32)
+					diff -= 1
+				}
 			}
 		}
 	}
 	// fmt.Println(hashOutput(h.out))
-	h.Output = bitVecToString(hashOutput(h.out))
+	h.Output = fmt.Sprintf("%x", bitVecToString(hashOutput(h.out)))
+	fmt.Println("out", h.out)
+	fmt.Println(hashOutput(h.out))
 	// fmt.Println(h.Output)
+}
+
+/* Fix the input bits and pad the input string into a bitvec */
+func (h *Hash) SetInput(s string) {
+	// q := len(h.Input) % 4
+	// // fmt.Println(q)
+	// if q != 0 {
+	// 	h.Input += padString(4 - q - 1)
+	// }
+	// // fmt.Println(h.Input)
+	// q = len(h.Input) / 4
+	
+	// h.FixInput()
+	h.Input = s
+	s = padString(s)
+	h.P = make([][32]int, len(h.Input))
+	x := stringToBitVec(s)
+	for i := 0; i < len(h.Input); i++ {
+		h.P[i] = [32]int(x)
+		// h.P[i] =
+	}
+}
+
+/* Fix input bits (mixing values) */
+func (h *Hash) FixInput() {
+	for i := 0; i < h.FixedBits; i++ {
+		r := i / 32 //int size
+		c := i % 32
+		
+		x := bitVecToInt(arrConv(h.W[r]))
+		h.F.FixedValue(intToBitVec(uint32(h.W[r][c])), x>>c&1, 1)
+
+	}
 }
 
 /* Final addition in sha256 loop */
@@ -97,6 +137,40 @@ func (h *Hash) Add() {
 	h.F.Add2(arrConv(h.tmp[7]), arrConv(h.chain[7]), arrConv(h.E[64]), 32)
 }
 
+/* Mix p values into w, padded as big endian */
+func (h *Hash) Mixer1(i int) {
+	j := i * 4
+	_ = j
+	var x uint32
+	// x := bitVecToInt(arrConv(h.P[j]))<<24 | bitVecToInt(arrConv(h.P[j+1]))<<16 | bitVecToInt(arrConv(h.P[j+2]))<<8 | bitVecToInt(arrConv(h.P[j+3]))
+	// fmt.Println(x)
+	for k := 0; k < 4; k++ {
+		x = (x << 8) | bitVecToInt(arrConv(h.P[j+k]))
+	}
+	// fmt.Println(x)
+	// h.W[i] = [32]int(intToBitVec(x))
+	h.W[i] = [32]int(h.F.Assign(arrConv(h.W[i]), intToBitVec(x), 32))
+}
+
+/* Mix w values */
+func (h *Hash) Mixer2(i int) {
+	s0 := h.F.NewVars(32, "" /* fmt.Sprintf("S0_%d", i) */)
+	s1 := h.F.NewVars(32, "" /* fmt.Sprintf("S1_%d", i) */)
+	r1 := make([]int, 32)
+	r2 := make([]int, 32)
+	// r1 := h.F.NewVars(32, "")
+	// r2 := h.F.NewVars(32, "")
+	r1 = h.F.RotateR(r1, arrConv(h.W[i-15]), 7, 32)
+	r2 = h.F.RotateR(r2, arrConv(h.W[i-15]), 18, 32)
+	h.F.Xor2(s0[29:], r1[29:], r2[29:], 3)
+	h.F.Xor3(s0, r1, r2, h.W[i-15][3:], 29) //shr(w[i-15]+3)
+	r1 = h.F.RotateR(r1, arrConv(h.W[i-2]), 17, 32)
+	r2 = h.F.RotateR(r2, arrConv(h.W[i-2]), 19, 32)
+	h.F.Xor2(s1[22:], r1[22:], r2[22:], 10)
+	h.F.Xor3(s1, r1, r2, h.W[i-2][10:], 22) //shr(w[i-2]+10)
+	h.F.Add4(arrConv(h.W[i]), arrConv(h.W[i-16]), s0, arrConv(h.W[i-7]), s1, 32)
+}
+
 /* main loop of sha256 */
 func (h *Hash) MainLoop(i int) {
 	sig0 := h.F.NewVars(32, "" /* fmt.Sprintf("SIG0_%d", i) */)
@@ -106,85 +180,11 @@ func (h *Hash) MainLoop(i int) {
 	f1 := h.F.NewVars(32, "" /* fmt.Sprintf("F1_%d", i) */)
 	f2 := h.F.NewVars(32, "" /* fmt.Sprintf("F2_%d", i) */)
 	h.F.If(f1, arrConv(h.E[i+3]), arrConv(h.E[i+2]), arrConv(h.E[i+1]), 32)
-	/* c++ - 32 bit diff
-	-19409 2049 2081 0
-	-19409 2049 2113 0
-	-19409 2081 2113 0
-	19409 -2081 -2113 0
-	19409 -2049 -2113 0
-	19409 -2049 -2081 0
-	go - 64 bit diff
-	-26065 6657 6721 0
-	-26065 6657 6785 0
-	-26065 6721 6785 0
-	26065 -6721 -6785 0
-	26065 -6657 -6785 0
-	26065 -6657 -6721 0
-	*/
 	h.F.Maj3(f2, arrConv(h.A[i+3]), arrConv(h.A[i+2]), arrConv(h.A[i+1]), 32)
 	t := h.F.NewVars(32, "" /* fmt.Sprintf("T_%d", i) */)
 	h.F.Add5(t, arrConv(h.E[i]), sig1, f1, arrConv(h.K[i]), arrConv(h.W[i]), 32)
 	h.F.Add2(arrConv(h.E[i+4]), arrConv(h.A[i]), t, 32)
 	h.F.Add3(arrConv(h.A[i+4]), t, sig0, f2, 32)
-}
-
-/* Mix p values into w, padded as big endian */
-func (h *Hash) Mixer1(i int) {
-	j := i * 4
-	_ = j
-	// x := bitVecToInt(arrConv(h.P[j]))<<24 | bitVecToInt(arrConv(h.P[j+1]))<<16 | bitVecToInt(arrConv(h.P[j+2]))<<8 | bitVecToInt(arrConv(h.P[j+3]))
-	// fmt.Println(x)
-	var x uint32
-	for k := 0; k < 4; k++ {
-		// x = (x << 8) | bitVecToInt(arrConv(h.P[j+k]))
-	}
-	// fmt.Println(x)
-	// h.W[i] = [32]int(intToBitVec(x))
-	//
-	h.W[i] = [32]int(h.F.Assign(arrConv(h.W[i]), intToBitVec(x), 32))
-
-}
-
-/* Fix the input bits and pad the input string into a bitvec */
-func (h *Hash) SetInput(s string) {
-	h.Input = s
-	// h.FixInput()
-	// q := len(h.Input) % 4
-	// // fmt.Println(q)
-	// if q != 0 {
-	// 	h.Input += padString(4 - q - 1)
-	// }
-	// // fmt.Println(h.Input)
-	// q = len(h.Input) / 4
-	s = padString(0, s)
-	h.P = make([][32]int, len(h.Input))
-	x := stringToBitVec(s)
-	_ = x
-	for i := 0; i < len(h.Input); i++ {
-		h.P[i] = [32]int(x)
-		// h.P[i] =
-	}
-}
-
-/* Mix w values */
-func (h *Hash) Mixer2(i int) {
-	s0 := h.F.NewVars(32, "" /* fmt.Sprintf("S0_%d", i) */)
-	s1 := h.F.NewVars(32, "" /* fmt.Sprintf("S1_%d", i) */)
-	r1 := make([]int, 32)
-	r2 := make([]int, 32)
-
-	r1 = h.F.RotateR(r1, arrConv(h.W[i-15]), 7, 32)
-	r2 = h.F.RotateR(r2, arrConv(h.W[i-15]), 18, 32)
-	h.F.Xor2(s0[29:], r1[29:], r2[29:], 3)
-	h.F.Xor3(s0, r1, r2, h.W[i-15][3:], 29) //shr(w[i-15]+3)
-
-	r1 = h.F.RotateR(r1, arrConv(h.W[i-2]), 17, 32)
-	r2 = h.F.RotateR(r2, arrConv(h.W[i-2]), 19, 32)
-
-	h.F.Xor2(s1[22:], r1[22:], r2[22:], 10)
-	h.F.Xor3(s1, r1, r2, h.W[i-2][10:], 22) //shr(w[i-2]+10)
-
-	h.F.Add4(arrConv(h.W[i]), arrConv(h.W[i-16]), s0, arrConv(h.W[i-7]), s1, 32)
 }
 
 /* Assign chaining values to a,b,c,d,e,f,g,h */
@@ -225,7 +225,7 @@ func (h *Hash) InitVars(d int) {
 	for i := 0; i < 8; i++ {
 		h.tmp[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("tmp%d%d", i, d)))
 	}
-	for i := 0; i < h.Rounds; i++ {
+	for i := 0; i < 70; i++ {
 		h.A[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("a%d%d", i, d)))
 		h.E[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("e%d%d", i, d)))
 	}
@@ -235,11 +235,20 @@ func (h *Hash) InitVars(d int) {
 func (h *Hash) MultiHash() {
 	// h.SetInput(h.Input)
 	for i := 0; i < len(h.Table); i++ {
-		h.Encode(i)
+		if i == len(h.Table)-1 {
+			h.Encode(i, true)
+		} else {
+			h.Encode(i, false)
+		}
 		// h.SetInput(bitVecToString((hashOutput(h.out))))
 		h.SetInput(h.Output)
-		//output vars moved to input
-		// h.InitBitVec()
+	}
+	h.OutputVar()
+}
+
+func (h *Hash)OutputVar() {
+	for i := 0; i < 8; i++ {
+		h.out[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("out%d", i)))
 	}
 }
 
@@ -254,18 +263,14 @@ func NewSHA256(input string, n int) Hash {
 	h.SetInput(input)
 	h.Table = make([]VecTable, n)
 	h.UseIVBlock = true
-	// h.InitBitVec()
+	fmt.Println(h.out)
 	return h
 }
 
-/* Fix input bits (mixing values) */
-func (h *Hash) FixInput() {
-	for i := 0; i < h.FixedBits; i++ {
-		r := i / 32 //int size
-		c := i % 32
-		x := bitVecToInt(arrConv(h.W[r]))
-		h.F.FixedValue(intToBitVec(uint32(h.W[r][c])), x>>c&1, 1)
-	}
+func (h *Hash)Assert() bool {
+	x := sha256sum(h.Input)
+	_ = x
+	return false
 }
 
 /* first 32 bits of the fractional parts of the cube roots of the first 64 primes 2..311) */
@@ -383,3 +388,7 @@ type VecTable struct {
 	K [64][32]int //k constants
 	W [64][32]int //mixing values initialized from input
 }
+
+
+
+

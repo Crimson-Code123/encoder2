@@ -5,30 +5,42 @@ import (
 )
 
 var (
-	debug = false
+	debug  = true
 	mixer1 = false
-	
 )
 
-/*  */
-
 func main() {
-	fmt.Printf("")
 	// test13()
 	// test7()
-	
-	initHash("123", 1)
+	// test17()
+	test19()
+	// return
+	var x string
+	if mixer1 {
+		fmt.Scanf("%s", x)
+		initHash(x, 1)
+	} else {
+		initHash("123", 1)
+	}
 	// listener()
+	// r := sha256sum("123")
+	// e := stringToBitVec(sha256sum(("123")))
+	// fmt.Println(e)
+	// r = fmt.Sprintf("%x", r)
+	// fmt.Println(r)
 	
+
 }
 
 func initHash(input string, n int) {
 	h := NewSHA256(input, n)
-	// h.SetOutput()
 	// h.Encode(n)
 	h.MultiHash()
 	writeDIMACS("hash.dimacs", h.F)
 }
+
+
+
 
 
 

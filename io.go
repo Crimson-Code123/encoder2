@@ -63,6 +63,14 @@ func writeDIMACS(name string, formula Formula) {
 	for i := 0; i < len(formula.Clauses); i++ {
 		for j := 0; j < len(formula.Clauses[i].Literals); j++ {
 			s := fmt.Sprintf("%d ", formula.Clauses[i].Literals[j])
+			if debug {
+				if formula.Clauses[i].Literals[j] == 0 {
+					// fmt.Println("clause:", formula.Clauses[i])
+					// return
+				}
+			} else {
+
+			}
 			io.WriteString(file, s)
 		}
 		io.WriteString(file, "0\n")

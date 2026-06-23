@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 /* CNF-related stuff */
 
 type Formula struct {
@@ -41,6 +43,11 @@ func (f *Formula) FixedValue(z []int, value uint32, n int) {
 	// fmt.Println(value, z)
 	for i := 0; i < n; i++ {
 		x := z[i]
+		if x == 0 || x == -1 {
+
+			// fmt.Println("fv:", z, value)
+			// return
+		}
 		// fmt.Printf("x: %d | v: %d\n", x, (value >> i) & 1)
 		if (value>>i)&1 <= 0 {
 			// x = (value >> i) & 1
@@ -56,11 +63,12 @@ func (f *Formula) FixedValue(z []int, value uint32, n int) {
 /* The addition functions may not be complete */
 
 func (f *Formula) Add2(z []int, x []int, y []int, n int) {
+	if debug && z[0] == 0  || x[0] == 0  || y[0] == 0 {
+		fmt.Println("Add2:", z, x, y)
+	}
 	r := n - 1
 	c := f.NewVars(r, "" /* fmt.Sprintf("ADD2_c_%d", z[0]) */)
-
 	f.HalfAdder(c, z, x, y, 1)
-
 	//fulladder(c+1, z+1, x+1, y+1, c, n-2);
 	f.FullAdder(c[1:], z[1:], x[1:], y[1:], c, n-2)
 	//xor3(z+n-1, x+n-1, y+n-1, c+n-2, 1);
@@ -68,6 +76,9 @@ func (f *Formula) Add2(z []int, x []int, y []int, n int) {
 }
 
 func (f *Formula) Add3(z []int, a []int, b []int, c []int, n int) {
+	if debug && z[0] == 0  || a[0] == 0  || b[0] == 0 || c[0] == 0 {
+		fmt.Println("Add3:", z, a, b, c)
+	}
 	t0 := f.NewVars(n, "" /* fmt.Sprintf("ADD3_t0_%d", z[0]) */)
 	f.Add2(t0, a, b, n)
 	// t1 := f.NewVars(n, ""/* fmt.Sprintf("add3_t1_%d", z[0]) */)
@@ -76,6 +87,9 @@ func (f *Formula) Add3(z []int, a []int, b []int, c []int, n int) {
 }
 
 func (f *Formula) Add4(z []int, a []int, b []int, c []int, d []int, n int) {
+	if debug && z[0] == 0 || a[0] == 0 || b[0] == 0 || c[0] == 0 || d[0] == 0 {
+		fmt.Println("Add4:", z, a, b, c, d)
+	}
 	t0 := f.NewVars(n, "" /* fmt.Sprintf("ADD4_t0_%d", z[0]) */)
 	f.Add2(t0, a, b, n)
 	t1 := f.NewVars(n, "" /* fmt.Sprintf("ADD4_t1_%d", z[0]) */)
@@ -84,6 +98,9 @@ func (f *Formula) Add4(z []int, a []int, b []int, c []int, d []int, n int) {
 }
 
 func (f *Formula) Add5(z []int, a []int, b []int, c []int, d []int, e []int, n int) {
+	if debug && z[0] == 0 || a[0] == 0 || b[0] == 0 || c[0] == 0 || d[0] == 0 || e[0] == 0 {
+		fmt.Println("Add5:", z, a, b, c, d, e)
+	}
 	t0 := f.NewVars(n, "" /* fmt.Sprintf("ADD5_t0_%d", z[0]) */)
 	f.Add2(t0, a, b, n)
 	t1 := f.NewVars(n, "" /* fmt.Sprintf("ADD5_t1_%d", z[0]) */)
@@ -104,6 +121,9 @@ func (f *Formula) FullAdder(c []int, s []int, x []int, y []int, t []int, n int) 
 }
 
 func (f *Formula) And2(z []int, x []int, y []int, n int) {
+	if debug && z[0] == 0 || x[0] == 0 || y[0] == 0 {
+		fmt.Println("And2:", z, x, y)
+	}
 	for i := 0; i < n; i++ {
 		f.AddClauseVec([]int{z[i], -x[i], -y[i]})
 		f.AddClauseVec([]int{-z[i], x[i]})
@@ -112,6 +132,9 @@ func (f *Formula) And2(z []int, x []int, y []int, n int) {
 }
 
 func (f *Formula) Or2(z []int, x []int, y []int, n int) {
+	// if debug {
+	// 	fmt.Println("Or2:", z, x, y)
+	// }
 	for i := 0; i < n; i++ {
 		f.AddClauseVec([]int{-z[i], x[i], y[i]})
 		f.AddClauseVec([]int{z[i], -x[i]})
@@ -120,6 +143,9 @@ func (f *Formula) Or2(z []int, x []int, y []int, n int) {
 }
 
 func (f *Formula) Maj3(z []int, x []int, y []int, t []int, n int) {
+	if debug && z[0] == 0 || x[0] == 0 || y[0] == 0 || t[0] == 0 {
+		fmt.Println("Maj3:", z, x, y, t)
+	}
 	for i := 0; i < n; i++ {
 		f.AddClauseVec([]int{-z[i], x[i], y[i]})
 		f.AddClauseVec([]int{-z[i], x[i], t[i]})
@@ -131,6 +157,9 @@ func (f *Formula) Maj3(z []int, x []int, y []int, t []int, n int) {
 }
 
 func (f *Formula) If(z []int, x []int, y []int, t []int, n int) {
+	if debug && z[0] == 0 || x[0] == 0 || y[0] == 0 || t[0] == 0 {
+		fmt.Println("If:", z, x, y, t)
+	}
 	for i := 0; i < n; i++ {
 		f.AddClauseVec([]int{-z[i], x[i], t[i]})
 		f.AddClauseVec([]int{-z[i], -x[i], y[i]})
@@ -140,6 +169,9 @@ func (f *Formula) If(z []int, x []int, y []int, t []int, n int) {
 }
 
 func (f *Formula) Xor2(z []int, x []int, y []int, n int) {
+	if debug && z[0] == 0  || x[0] == 0  || y[0] == 0 {
+		fmt.Println("Xor2:", z, x, y)
+	}
 	for i := 0; i < n; i++ {
 		f.AddClauseVec([]int{-z[i], -x[i], -y[i]})
 		f.AddClauseVec([]int{z[i], -x[i], y[i]})
@@ -149,6 +181,9 @@ func (f *Formula) Xor2(z []int, x []int, y []int, n int) {
 }
 
 func (f *Formula) Xor3(z []int, x []int, y []int, t []int, n int) {
+	if debug && z[0] == 0  || x[0] == 0  || y[0] == 0 || t[0] == 0 {
+		fmt.Println("Xor3:", z, x, y, t)
+	}
 	for i := 0; i < n; i++ {
 		f.AddClauseVec([]int{z[i], -x[i], -y[i], -t[i]})
 		f.AddClauseVec([]int{-z[i], -x[i], -y[i], t[i]})
@@ -162,6 +197,9 @@ func (f *Formula) Xor3(z []int, x []int, y []int, t []int, n int) {
 }
 
 func (f *Formula) Xor4(z []int, a []int, b []int, c []int, d []int, n int) {
+	if debug && z[0] == 0  || a[0] == 0  || b[0] == 0 || c[0] == 0  || d[0] == 0 {
+		fmt.Println("Xor4:", z, a, b, c, d)
+	}
 	for i := 0; i < n; i++ {
 		f.AddClauseVec([]int{-z[i], -a[i], -b[i], -c[i], -d[i]})
 		f.AddClauseVec([]int{z[i], -a[i], -b[i], -c[i], d[i]})
