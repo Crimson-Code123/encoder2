@@ -26,7 +26,9 @@ func readDIMACS(name string) Formula {
 	for x := range strings.Lines(string(data)) {
 		y := strings.Split(x, " ")
 		if i == 0 { //p cnf varcount clausecount
-			fmt.Printf("Read file with %s Vars and %s Clauses\n", y[2], strings.Split(y[3], "\n")[0])
+			if debug {
+				fmt.Printf("Read file with %s Vars and %s Clauses\n", y[2], strings.Split(y[3], "\n")[0])
+			}
 			i += 1
 		} else {
 			if y[0] == "c" { //c varname varid

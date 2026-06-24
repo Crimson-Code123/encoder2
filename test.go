@@ -199,17 +199,20 @@ func test17() {
 func test18() {
 	h := NewSHA256("123", 1)
 	// h.InitVars(1)
-	h.Encode(1, false)
-	// h.SetOutput(false)
+	// h.Encode(1, false)
+	h.InitVars(0)
+	h.SetOutput(false)
 	fmt.Println("out:", h.out)
 	// fmt.Println(len(h.out))
 	fmt.Println("output", h.Output)
-	
+	writeDIMACS("test18.dimacs", h.F)
+
 }
 
 func test19() {
 	x := readDIMACS("hash.dimacs")
-	fmt.Println(x)
+	_ = x
+	// fmt.Println(x)
 	
 }
 
@@ -221,4 +224,9 @@ func test21() {
 	
 }
 
+
+/* 
+
+
+*/
 

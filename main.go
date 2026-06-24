@@ -5,15 +5,15 @@ import (
 )
 
 var (
-	debug  = true
+	debug  = false
 	mixer1 = false
 )
 
 func main() {
-	// test13()
+	// test18()
 	// test7()
 	// test17()
-	test19()
+	// test19()
 	// return
 	var x string
 	if mixer1 {
