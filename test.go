@@ -129,7 +129,6 @@ func test10() {
 	fmt.Println(sha256.Sum256([]byte("")))
 }
 
-
 func test11() {
 	x := 10
 	fmt.Println(strconv.Itoa(x))
@@ -142,14 +141,14 @@ func test12() {
 	x2 := f.NewVars(8, "x1")
 	x3 := f.NewVars(8, "x3")
 	f.Add2(x1, x2, x3, 4)
-	fmt.Println(x1, x2 ,x3)
+	fmt.Println(x1, x2, x3)
 	x1 = f.RotateR(x1, x2, 2, 8)
 	f.Add2(x1, x2, x3, 2)
-	fmt.Println(x1, x2 ,x3)
+	fmt.Println(x1, x2, x3)
 	x1 = f.RotateR(x1, x3, 2, 8)
-	fmt.Println(x1, x2 ,x3)
+	fmt.Println(x1, x2, x3)
 	f.Add2(x1, x2, x3, 2)
-	
+
 	writeDIMACS("test12.dimacs", f)
 }
 
@@ -193,7 +192,6 @@ func test17() {
 	// h.Assert()
 	fmt.Println(sha256sum("1234567"))
 	fmt.Println(sha256sum(padString("1234567")))
-
 }
 
 func test18() {
@@ -202,31 +200,71 @@ func test18() {
 	// h.Encode(1, false)
 	h.InitVars(0)
 	h.SetOutput(false)
+	x := sha256sum("123")
+	fmt.Println(x)
+	fmt.Println(stringToBitVec(x))
 	fmt.Println("out:", h.out)
 	// fmt.Println(len(h.out))
 	fmt.Println("output", h.Output)
 	writeDIMACS("test18.dimacs", h.F)
-
 }
 
 func test19() {
 	x := readDIMACS("hash.dimacs")
 	_ = x
 	// fmt.Println(x)
-	
+
 }
 
 func test20() {
-	
+	r := sha256sum("123")
+	r = sha256sum("123456")
+	r = sha256sum("123456789")
+	fmt.Println("")
+	r = sha256sum("123456789123456789123456789123456789123456789123456789123456789")
+	_ = r
 }
 
 func test21() {
-	
+	h := NewSHA256("12345", 1)
+	f := stringToBitVec(h.Input)
+	_ = f
+	h.P = make([]byte, len(h.Input))
 }
 
+func test22() {
+	x := byteToBitVec(122)
+	fmt.Println(x)
+	a := uint32(127 << 24)
+	b := uint32(63 << 16)
+	c := uint32(31 << 8)
+	fmt.Println(intToBitVec(a))
+	fmt.Println(intToBitVec(b))
+	fmt.Println(intToBitVec(c))
 
-/* 
+	// f := stringToBitVec("1234") //32 bits
+	// x := bitVecToInt(f)
+	// a := x << 24
+	// b := x << 16
+	// c := x << 8
+	// fmt.Println("f:", f)
+	// fmt.Println(bitVecToInt(f))
+	// fmt.Println("l24:", a)
+	// fmt.Println("116:", b)
+	// fmt.Println("l8: ", c)
+	// fmt.Println("l0: ", d)
+}
+
+func test23() {
+
+}
+
+func test24() {
+
+}
+
+/*
+
 
 
 */
-

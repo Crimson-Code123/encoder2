@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	sha256 "main/reference"
+	"math/rand"
 	"os"
 	"strconv"
 )
@@ -38,12 +39,9 @@ import (
 	}
 */
 
-
-
 /* Util functions */
 
 func assertOutput() bool {
-
 	return false
 }
 
@@ -125,6 +123,15 @@ func intToBitVec(value uint32) []int {
 	return x
 }
 
+func intToBitVecRev(value uint32) []int {
+	x := make([]int, 0)
+	for i := 0; i < 32; i++ {
+		r := (value >> i) & 1
+		x = append(x, int(r))
+	}
+	return reverse(x)
+}
+
 /* output is big endian */
 func int64ToBitVec(value uint64) []int {
 	x := make([]int, 0)
@@ -143,6 +150,18 @@ func bitVecToInt(vec []int) uint32 {
 	}
 	for i := 0; i < len(vec); i++ {
 		x = x<<1 | vec[i]
+	}
+	return uint32(x)
+}
+
+func bitVecToIntRev(vec []int) uint32 {
+	vec2 := reverse(vec)
+	var x int
+	if len(vec2) > 32 {
+		return 0
+	}
+	for i := 0; i < len(vec2); i++ {
+		x = x<<1 | vec2[i]
 	}
 	return uint32(x)
 }
@@ -217,6 +236,10 @@ func reverse(a []int) []int {
 
 func itoa(i int) string {
 	return strconv.Itoa(i)
+}
+
+func random() int {
+	return rand.Intn(2)
 }
 
 func quit() {

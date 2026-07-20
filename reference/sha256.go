@@ -8,6 +8,8 @@ package sha256
 
 import (
 	"crypto"
+	"fmt"
+	// "fmt"
 	// "crypto/internal/boring"
 	"encoding/binary"
 	"errors"
@@ -146,13 +148,16 @@ func (d *digest) BlockSize() int { return BlockSize }
 
 func (d *digest) Write(p []byte) (nn int, err error) {
 	nn = len(p)
-	// fmt.Println("Data:", p)
 	d.len += uint64(nn)
+	// fmt.Println("Data:", p)
 	// fmt.Println("Len:", d.len)
+	
 	if d.nx > 0 {
 		n := copy(d.x[d.nx:], p)
+		fmt.Println("dx: ", d.x[d.nx:], len(d.x[d.nx:]))
 		d.nx += n
 		if d.nx == chunk {
+			fmt.Println("d.x: ", d.x[:], len(d.x[:]))
 			blockGeneric(d, d.x[:])
 			d.nx = 0
 		}
@@ -182,6 +187,7 @@ func (d *digest) Sum(in []byte) []byte {
 func (d *digest) checkSum() [Size]byte {
 	len := d.len
 	// Padding. Add a 1 bit and 0 bits until 56 bytes mod 64.
+
 	var tmp [64 + 8]byte // padding + length buffer
 	tmp[0] = 0x80
 	var t uint64
@@ -191,6 +197,7 @@ func (d *digest) checkSum() [Size]byte {
 		t = 64 + 56 - len%64
 	}
 	// Length in bits.
+
 	len <<= 3
 	padlen := tmp[:t+8]
 	binary.BigEndian.PutUint64(padlen[t+0:], len)

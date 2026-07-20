@@ -7,6 +7,7 @@
 package sha256
 
 import (
+	"fmt"
 	"math/bits"
 )
 
@@ -78,13 +79,44 @@ var _K = []uint32{
 }
 
 func blockGeneric(dig *digest, p []byte) {
+	fmt.Printf("")
 	var w [64]uint32
 	//assign IV
 	h0, h1, h2, h3, h4, h5, h6, h7 := dig.h[0], dig.h[1], dig.h[2], dig.h[3], dig.h[4], dig.h[5], dig.h[6], dig.h[7]
 	for len(p) >= chunk {
 		for i := 0; i < 16; i++ {
 			j := i * 4
-			w[i] = uint32(p[j])<<24 | uint32(p[j+1])<<16 | uint32(p[j+2])<<8 | uint32(p[j+3])
+			var x uint32
+			aa := uint32(p[j])
+			bb := uint32(p[j+1])
+			cc := uint32(p[j+2])
+			dd := uint32(p[j+3])
+			fmt.Printf("Non aa: %d | bb: %d | cc: %d | dd: %d\n", aa, bb, cc, dd)
+			aaa := reverse(intToBitVec(aa))
+			bbb := reverse(intToBitVec(bb))
+			ccc := reverse(intToBitVec(cc))
+			ddd := reverse(intToBitVec(dd))
+			if aa != 0 {
+				fmt.Println(aaa, bbb, ccc, ddd)
+			}
+			zz := uint32(p[j]) << 24
+			yy := uint32(p[j+1]) << 16
+			xx := uint32(p[j+2]) << 8
+			ww := uint32(p[j+3])
+			// fmt.Printf("Shifted zz: %d | yy: %d | xx: %d | ww: %d\n", zz, yy, xx, ww)
+			// x = uint32(p[j])<<24 | uint32(p[j+1])<<16 | uint32(p[j+2])<<8 | uint32(p[j+3])
+			x = zz | yy | xx | ww
+			// fmt.Println("x:", x)
+			zzz := reverse(intToBitVec(zz))
+			yyy := reverse(intToBitVec(yy))
+			xxx := reverse(intToBitVec(xx))
+			www := reverse(intToBitVec(ww))
+			if aa != 0 {
+				fmt.Println(zzz, yyy, xxx, www)
+			}
+			// fmt.Printf("\n")
+			// fmt.Println("Final:", intToBitVec(x))
+			w[i] = x
 		}
 		for i := 16; i < 64; i++ {
 			v1 := w[i-2]
@@ -121,4 +153,34 @@ func blockGeneric(dig *digest, p []byte) {
 	}
 	//assign
 	dig.h[0], dig.h[1], dig.h[2], dig.h[3], dig.h[4], dig.h[5], dig.h[6], dig.h[7] = h0, h1, h2, h3, h4, h5, h6, h7
+}
+
+func intToBitVec(value uint32) []int {
+	x := make([]int, 0)
+	for i := 0; i < 32; i++ {
+		r := (value >> i) & 1
+		x = append(x, int(r))
+	}
+	return x
+}
+
+func bitVecToInt(vec []int) uint32 {
+	var x int
+	if len(vec) > 32 {
+		return 0
+	}
+	for i := 0; i < len(vec); i++ {
+		x = x<<1 | vec[i]
+	}
+	return uint32(x)
+}
+
+func reverse(a []int) []int {
+	x := make([]int, len(a))
+	r := len(a) - 1
+	for i := 0; i < len(a); i++ {
+		x[r] = a[i]
+		r -= 1
+	}
+	return x
 }
