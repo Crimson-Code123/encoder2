@@ -3,12 +3,11 @@ package main
 import (
 	"fmt"
 	"net"
-	"time"
 )
 
 var (
-	debug  = false
-	mixer1 = false
+	debug   = false
+	mixer1  = false
 	padding = false
 )
 
@@ -18,6 +17,8 @@ func main() {
 	// test17()
 	// sha256sum("123")
 	// test22()
+	Sum256([]byte("1237657578565678777765756567575555555555555555555555555555555555555555565555675566578667757687687"))
+	fmt.Println(sha256sum("123"))
 	// return
 	var x string
 	if !debug && mixer1 {
@@ -31,10 +32,10 @@ func main() {
 	// fmt.Println(e)
 	// r = fmt.Sprintf("%x", r)
 	// fmt.Println(r)
-	go server()
-	for {
-		time.Sleep(time.Second * 10)
-	}
+	// go server()
+	// for {
+	// 	time.Sleep(time.Second * 10)
+	// }
 }
 
 func initHash(input string, n int) {
@@ -49,11 +50,9 @@ func server() {
 	_ = err
 	_ = conn
 	x := make([]byte, 1024)
-	n, err := conn.Read(x)
-	fmt.Printf("N: %d | X: %s\n", n, x)
+	_ = x
+	// x := new([]byte
+	// n, err := conn.Read(x)
+	// fmt.Printf("N: %d | X: %s\n", n, x)
 
 }
-
-
-
-

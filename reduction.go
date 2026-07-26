@@ -1,6 +1,9 @@
 package main
 
-/*  */
+/* reduction.go
+
+
+*/
 
 type Graph struct {
 	NodeCount int
@@ -60,9 +63,9 @@ func (g *Graph) AddClauseGadget(c Clause) {
 }
 
 /* connect node n to nodes n2... */
-func (g *Graph) Connect(n Node, n2 ...Node) {
-	for i := 0; i < len(n2); i++ {
-		g.AddEdge(n, n2[i])
+func (g *Graph) Connect(src Node, dsts ...Node) {
+	for i := 0; i < len(dsts); i++ {
+		g.AddEdge(src, dsts[i])
 	}
 }
 
@@ -99,3 +102,12 @@ func (g *Graph) AppendGraph(gx Graph) {
 
 	}
 }
+
+func (g *Graph)Walk() {
+
+}
+
+
+
+
+

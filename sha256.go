@@ -119,13 +119,12 @@ func (h *Hash) SetOutput(output bool) {
 
 /* Fix the input bits and pad the input string into a bitvec */
 func (h *Hash) SetInput(s string, x int) {
-	h.Input = s
-	h.FixedBits = len(h.Input) * 8
 	if padding {
-		r := padString(s)
-		// h.InputVar(x)
-		_ = r
+		h.Input = padded(s)
+	} else {
+		h.Input = s
 	}
+	h.FixedBits = len(h.Input) * 8
 	f := stringToBitVec(h.Input)
 	_ = f
 	//InputVars, todo? padded length
