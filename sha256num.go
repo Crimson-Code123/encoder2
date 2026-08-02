@@ -10,6 +10,31 @@ func padded(p string) string {
 	return Sum256([]byte(p))
 }
 
+func bgh(h *Hash, p []byte) {
+	var w [64]uint32
+	for len(p) >= chunk {
+		for i := 0; i < 16; i++ {
+			j := i * 4
+			var x uint32
+			zz := uint32(p[j]) << 24
+			yy := uint32(p[j+1]) << 16
+			xx := uint32(p[j+2]) << 8
+			ww := uint32(p[j+3])
+			x = zz | yy | xx | ww
+			w[i] = x
+			
+		}
+		for i := 16; i < 64; i++ {
+			v1 := w[i-2]
+			t1 := (bits.RotateLeft32(v1, -17)) ^ (bits.RotateLeft32(v1, -19)) ^ (v1 >> 10)
+			v2 := w[i-15]
+			t2 := (bits.RotateLeft32(v2, -7)) ^ (bits.RotateLeft32(v2, -18)) ^ (v2 >> 3)
+			w[i] = t1 + w[i-7] + t2 + w[i-16]
+		}
+		p = p[chunk:]
+	}
+}
+
 func blockGeneric(dig *digest, p []byte) {
 	var w [64]uint32
 	//assign IV
@@ -34,11 +59,9 @@ func blockGeneric(dig *digest, p []byte) {
 			yy := uint32(p[j+1]) << 16
 			xx := uint32(p[j+2]) << 8
 			ww := uint32(p[j+3])
-
 			// fmt.Printf("Shifted zz: %d | yy: %d | xx: %d | ww: %d\n", zz, yy, xx, ww)
 			// x = uint32(p[j])<<24 | uint32(p[j+1])<<16 | uint32(p[j+2])<<8 | uint32(p[j+3])
 			x = zz | yy | xx | ww
-
 			// fmt.Println("x:", x)
 			// zzz := reverse(intToBitVec(zz))
 			// yyy := reverse(intToBitVec(yy))
@@ -109,7 +132,7 @@ func (d *digest) Write(p []byte) (nn int, err error) {
 	}
 	if len(p) >= chunk {
 		n := len(p) &^ (chunk - 1)
-		fmt.Println("n: ", n, d.x[:], p[:n])
+		fmt.Println("n: ", n, p[:n]) //d.x[:],
 		blockGeneric(d, p[:n])
 		p = p[n:]
 		// fmt.Println("z:", len(p), p)
@@ -138,21 +161,21 @@ func (d *digest) checkSum() {
 	fmt.Println("Padlen:", len(padlen), padlen)
 	//
 	d.Write(padlen)
-
+	
 	// if d.nx != 0 {
 	// 	panic("d.nx != 0")
 	// }
-	var digest [Size]byte
-	binary.BigEndian.PutUint32(digest[0:], d.h[0])
-	binary.BigEndian.PutUint32(digest[4:], d.h[1])
-	binary.BigEndian.PutUint32(digest[8:], d.h[2])
-	binary.BigEndian.PutUint32(digest[12:], d.h[3])
-	binary.BigEndian.PutUint32(digest[16:], d.h[4])
-	binary.BigEndian.PutUint32(digest[20:], d.h[5])
-	binary.BigEndian.PutUint32(digest[24:], d.h[6])
-	if !d.is224 {
-		binary.BigEndian.PutUint32(digest[28:], d.h[7])
-	}
+	// var digest [Size]byte
+	// binary.BigEndian.PutUint32(digest[0:], d.h[0])
+	// binary.BigEndian.PutUint32(digest[4:], d.h[1])
+	// binary.BigEndian.PutUint32(digest[8:], d.h[2])
+	// binary.BigEndian.PutUint32(digest[12:], d.h[3])
+	// binary.BigEndian.PutUint32(digest[16:], d.h[4])
+	// binary.BigEndian.PutUint32(digest[20:], d.h[5])
+	// binary.BigEndian.PutUint32(digest[24:], d.h[6])
+	// if !d.is224 {
+	// 	binary.BigEndian.PutUint32(digest[28:], d.h[7])
+	// }
 	// fmt.Println(digest)
 	// return digest
 

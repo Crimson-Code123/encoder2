@@ -5,6 +5,10 @@ import (
 	"net"
 )
 
+/*
+
+*/
+
 var (
 	debug   = false
 	mixer1  = false
@@ -17,8 +21,9 @@ func main() {
 	// test17()
 	// sha256sum("123")
 	// test22()
-	Sum256([]byte("1237657578565678777765756567575555555555555555555555555555555555555555565555675566578667757687687"))
-	fmt.Println(sha256sum("123"))
+	e := "12376575785656787777657565675134134375555555555555555555555555555555555555555565555675566578667757687687"
+	Sum256([]byte(e))
+	fmt.Println(sha256sum(e))
 	// return
 	var x string
 	if !debug && mixer1 {
@@ -52,7 +57,10 @@ func server() {
 	x := make([]byte, 1024)
 	_ = x
 	// x := new([]byte
-	// n, err := conn.Read(x)
-	// fmt.Printf("N: %d | X: %s\n", n, x)
-
+	n, err := conn.Read(x)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Printf("N: %d | X: %s\n", n, x)
 }
+

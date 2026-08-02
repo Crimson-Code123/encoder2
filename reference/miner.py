@@ -22,6 +22,7 @@ def timer():
 	return tcx
 
 pool = ('solo.ckpool.org' , 3333)
+server = ("127.0.0.1", 5656)
 address = 'bc1q03zbvbamcx77crptfga5e88cmubnea0jctzdfq'
 
 print(Back.BLUE , Fore.WHITE , 'WALLET:' , Fore.BLACK , str(address) , Style.RESET_ALL)
@@ -82,6 +83,8 @@ def bitcoin_miner(t , restarted = False):
 	
 		nonce = hex(random.randint(0 , 2 ** 32 - 1))[2 :].zfill(8)  # nNonce   #hex(int(nonce,16)+1)[2:]
 		blockheader = ctx.version + ctx.prevhash + merkle_root + ctx.ntime + ctx.nbits + nonce + '000000800000000000000000000000000000000000000000000000000000000000000000000000000000000080020000'
+		print(blockheader)
+		send_data(blockheader)
 		hash = hashlib.sha256(hashlib.sha256(binascii.unhexlify(blockheader)).digest()).digest()
 	
 		hash = binascii.hexlify(hash).decode()
@@ -156,6 +159,11 @@ def check_for_shutdown(t):
 		if n != -1 :
 			ctx.listfThreadRunning[n] = False
 			t.exit = True
+
+def send_data(d):
+	sock = socket.socket(socket.AF_INET , socket.SOCK_STREAM)
+	sock.connect(server)
+	sock.sendall(d)
 
 class ExitedThread(threading.Thread):
 	def __init__(self , arg , n) :

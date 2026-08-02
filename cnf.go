@@ -297,14 +297,6 @@ func (f *Formula) Sigma0(z []int, x []int) {
 }
 
 func (f *Formula) Sigma1(z []int, x []int) {
-	/*
-		void SHA256::Sigma1(int *z, int *x)
-		int r1[32], r2[32], r3[32];
-		cnf.rotr(r1, x, 6);
-		cnf.rotr(r2, x, 11);
-		cnf.rotr(r3, x, 25);
-		cnf.xor3(z, r1, r2, r3);
-	*/
 	r1 := make([]int, 32)
 	r2 := make([]int, 32)
 	r3 := make([]int, 32)
@@ -349,14 +341,34 @@ func (f *Formula) VarCount() int {
 }
 
 func (f *Formula) AtMostK(x []int, n int, k uint) {
-	// var r [n-1][k]int{}
-	/*
-
-	 */
+	R := make([][]int, n-1, k)
+	for i := 0; i < n-1; i++ {
+		R[i] = f.NewVars(int(k), "")
+	}
+	for i := 0; i < n-1; i++ {
+		f.AddClauseVec([]int{-x[i], R[i][0]})
+	}
+	for i := 1; i < n-1; i++ {
+		f.AddClauseVec([]int{-R[0][i]})
+	}
+	for i := 1; i < n-1; i++ {
+		for j := 1; k < k; j++ {
+			f.AddClauseVec([]int{-R[i - 1][j], R[i][j]})
+		}
+	}
+	for i := 1; i < n-1; i++ {
+		for j := 1; k < k; j++ {
+			f.AddClauseVec([]int{-x[i], -R[i - 1][j - 1], R[i][j]})
+		}
+	}
+	for i := 1; i < n-1; i++ {
+		f.AddClauseVec([]int{-x[i], -R[i - 1][k - 1]})
+	}
 }
 
 func (f *Formula) AtLeastK(x []int, n int, k uint) {
 	if k == 1 {
+		// 	addClause(vector<int>(x, x + n));
 		f.AddClauseVec(x)
 		return
 	}

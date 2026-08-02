@@ -29,9 +29,6 @@ empty input
 [227 176 196 66 152 252 28 20 154 251 244 200 153 111 185 36 39 174 65 228 100 155 147 76 164 149 153 27 120 82 184 85] - checksum
 */
 
-var (
-	w [64]uint32
-)
 
 /* Encode sha256 as CNF */
 func (h *Hash) Encode(j int, output bool) {
@@ -40,7 +37,6 @@ func (h *Hash) Encode(j int, output bool) {
 	// for len(h.P) >= h.ChunkSize*4 {
 	for x := 0; x < 1; x++ {
 		h.InitVars(j)
-		h.EncodeConst(j)
 		if h.UseIVBlock {
 			h.EncodeIV()
 			h.UseIVBlock = false
@@ -65,57 +61,6 @@ func (h *Hash) Encode(j int, output bool) {
 	h.SetOutput(output)
 }
 
-/* Set the output bits and hash output string */
-func (h *Hash) SetOutput(output bool) {
-	// diff := calcDifficulty("")
-	diff := 162
-	// f := 0
-	// fmt.Println("out", h.out
-	w := stringToBitVec(sha256sum(h.Input))
-	// fmt.Println("w:", w)
-	for i := 0; i < 8; i++ {
-		h.out[i] = [32]int(h.F.Assign(arrConv(h.out[i]), arrConv(h.tmp[i]), 32))
-		// fmt.Println(h.out)
-	}
-	for z := 0; z < 256; z++ {
-		r := z / 32
-		c := z % 32
-		// x := bitVecToInt(arrConv(h.out[r]))
-		// fmt.Println(r, c, x)
-		// h.F.FixedValue(intToBitVec(uint32(h.out[r][c])), uint32(w[c]), 1)
-		if output == false {
-			h.F.FixedValueBV(h.out[r][c], w[z])
-		} else {
-			if diff != 0 {
-				h.F.FixedValueBV(h.out[r][c], 0)
-				diff -= 1
-			} else {
-				h.F.FixedValueBV(h.out[r][c], random())
-			}
-		}
-	}
-	h.Output = fmt.Sprintf("%x", bitVecToString(hashOutput(h.out)))
-	// h.F.FixedValue(arrConv(h.out[i]), uint32(x[i]), 32)
-	// for j := 0; j < 32; j++ {
-	// 	// fmt.Println(h.out[i])
-	// 	if output == false {
-	// 		// h.F.FixedValue(arrConv(h.out[i]), uint32(x[i+j]), 32)
-	// 		// h.F.FixedValue(intToBitVec(uint32(h.out[i][j])), uint32(x[c]), 1)
-	// 		// h.F.FixedValue(arrConv(h.out[i][j]), uint32(x[j]), 32)
-	// 	} else {
-	// 		if diff != 0 {
-	// 			// h.F.FixedValue(intToBitVec(uint32(h.out[i][j])), uint32(0), 1)
-	// 			// h.F.FixedValue(arrConv(h.out[i]), uint32(0), 32)
-	// 			diff -= 1
-	// 		}
-	// 	}
-	// 	f += 1
-	// }
-	// fmt.Println(hashOutput(h.out)
-	// fmt.Println("out", h.out)
-	// fmt.Println(hashOutput(h.out))
-	// fmt.Println(h.Output)
-}
 
 /* Fix the input bits and pad the input string into a bitvec */
 func (h *Hash) SetInput(s string, x int) {
@@ -232,13 +177,6 @@ func (h *Hash) Add() {
 	h.F.Add2(arrConv(h.tmp[7]), arrConv(h.chain[7]), arrConv(h.E[64]), 32)
 }
 
-/* Encode IV constants */
-func (h *Hash) EncodeIV() {
-	for i := 0; i < 8; i++ {
-		h.F.FixedValue(arrConv(h.chain[i]), _IV[i], 32)
-	}
-}
-
 /* Encode k values */
 func (h *Hash) EncodeConst(j int) {
 	for i := 0; i < 64; i++ {
@@ -264,10 +202,70 @@ func (h *Hash) InitVars(d int) {
 	}
 }
 
+/* Encode IV constants */
+func (h *Hash) EncodeIV() {
+	for i := 0; i < 8; i++ {
+		h.F.FixedValue(arrConv(h.chain[i]), _IV[i], 32)
+	}
+}
+
+/*  */
 func (h *Hash) OutputVar() {
 	for i := 0; i < 8; i++ {
 		h.out[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("out%d", i)))
 	}
+}
+
+/* Set the output bits and hash output string */
+func (h *Hash) SetOutput(output bool) {
+	// diff := calcDifficulty("")
+	diff := 162
+	// f := 0
+	// fmt.Println("out", h.out
+	w := stringToBitVec(sha256sum(h.Input))
+	// fmt.Println("w:", w)
+	for i := 0; i < 8; i++ {
+		h.out[i] = [32]int(h.F.Assign(arrConv(h.out[i]), arrConv(h.tmp[i]), 32))
+		// fmt.Println(h.out)
+	}
+	for z := 0; z < 256; z++ {
+		r := z / 32
+		c := z % 32
+		// x := bitVecToInt(arrConv(h.out[r]))
+		// fmt.Println(r, c, x)
+		// h.F.FixedValue(intToBitVec(uint32(h.out[r][c])), uint32(w[c]), 1)
+		if output == false { //non final, bits can be free
+			h.F.FixedValueBV(h.out[r][c], w[z])
+		} else {
+			if diff != 0 {
+				h.F.FixedValueBV(h.out[r][c], 0)
+				diff -= 1
+			} else {
+				h.F.FixedValueBV(h.out[r][c], random())
+			}
+		}
+	}
+	h.Output = fmt.Sprintf("%x", bitVecToString(hashOutput(h.out)))
+	// h.F.FixedValue(arrConv(h.out[i]), uint32(x[i]), 32)
+	// for j := 0; j < 32; j++ {
+	// 	// fmt.Println(h.out[i])
+	// 	if output == false {
+	// 		// h.F.FixedValue(arrConv(h.out[i]), uint32(x[i+j]), 32)
+	// 		// h.F.FixedValue(intToBitVec(uint32(h.out[i][j])), uint32(x[c]), 1)
+	// 		// h.F.FixedValue(arrConv(h.out[i][j]), uint32(x[j]), 32)
+	// 	} else {
+	// 		if diff != 0 {
+	// 			// h.F.FixedValue(intToBitVec(uint32(h.out[i][j])), uint32(0), 1)
+	// 			// h.F.FixedValue(arrConv(h.out[i]), uint32(0), 32)
+	// 			diff -= 1
+	// 		}
+	// 	}
+	// 	f += 1
+	// }
+	// fmt.Println(hashOutput(h.out)
+	// fmt.Println("out", h.out)
+	// fmt.Println(hashOutput(h.out))
+	// fmt.Println(h.Output)
 }
 
 /* Fix input bits (mixing values) */
@@ -304,6 +302,7 @@ func NewSHA256(input string, n int) Hash {
 	h.Rounds = 64
 	h.ChunkSize = 16
 	h.F = NewFormula()
+	h.EncodeConst(0)
 	// h.Input = input
 	// h.FixedBits = len(input) * 8
 	h.SetInput(input, 1)
