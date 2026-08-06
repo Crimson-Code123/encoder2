@@ -256,7 +256,7 @@ func test22() {
 }
 
 func test23() {
-
+	
 }
 
 func test24() {

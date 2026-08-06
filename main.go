@@ -13,6 +13,8 @@ var (
 	debug   = false
 	mixer1  = false
 	padding = false
+	r = "12345678"
+	// r = "1234567812345678123456781234567812345678123456781234567812345678"
 )
 
 func main() {
@@ -21,16 +23,16 @@ func main() {
 	// test17()
 	// sha256sum("123")
 	// test22()
-	e := "12376575785656787777657565675134134375555555555555555555555555555555555555555565555675566578667757687687"
-	Sum256([]byte(e))
-	fmt.Println(sha256sum(e))
+	// e := "12376575785656787777657565675134134375555555555555555555555555555555555555555565555675566578667757687687"
+	// Sum256([]byte(e))
+	// fmt.Println(sha256sum(e))
 	// return
 	var x string
 	if !debug && mixer1 {
-		fmt.Scanf("%s", x)
+		fmt.Scanln("%s", x)
 		initHash(x, 2)
 	} else {
-		initHash("123", 1)
+		initHash(r, 1)
 	}
 	// listener()
 	// e := stringToBitVec(sha256sum(("123")))

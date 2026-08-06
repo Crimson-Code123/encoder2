@@ -6,12 +6,13 @@ import (
 	"math/bits"
 )
 
+var w [64]uint32
+
 func padded(p string) string {
 	return Sum256([]byte(p))
 }
 
-func bgh(h *Hash, p []byte) {
-	var w [64]uint32
+func bgh(h *digest, p []byte) {
 	for len(p) >= chunk {
 		for i := 0; i < 16; i++ {
 			j := i * 4
@@ -22,15 +23,15 @@ func bgh(h *Hash, p []byte) {
 			ww := uint32(p[j+3])
 			x = zz | yy | xx | ww
 			w[i] = x
-			
+			fmt.Printf("W[%d]: %d\n", i, x)
 		}
-		for i := 16; i < 64; i++ {
-			v1 := w[i-2]
-			t1 := (bits.RotateLeft32(v1, -17)) ^ (bits.RotateLeft32(v1, -19)) ^ (v1 >> 10)
-			v2 := w[i-15]
-			t2 := (bits.RotateLeft32(v2, -7)) ^ (bits.RotateLeft32(v2, -18)) ^ (v2 >> 3)
-			w[i] = t1 + w[i-7] + t2 + w[i-16]
-		}
+		// for i := 16; i < 64; i++ {
+		// 	v1 := w[i-2]
+		// 	t1 := (bits.RotateLeft32(v1, -17)) ^ (bits.RotateLeft32(v1, -19)) ^ (v1 >> 10)
+		// 	v2 := w[i-15]
+		// 	t2 := (bits.RotateLeft32(v2, -7)) ^ (bits.RotateLeft32(v2, -18)) ^ (v2 >> 3)
+		// 	w[i] = t1 + w[i-7] + t2 + w[i-16]
+		// }
 		p = p[chunk:]
 	}
 }
@@ -116,24 +117,24 @@ func (d *digest) Write(p []byte) (nn int, err error) {
 	d.len += uint64(nn)
 	if d.nx > 0 {
 		n := copy(d.x[d.nx:], p)
-		fmt.Println("dx: ", len(d.x[d.nx:]), d.x[d.nx:])
+		// fmt.Println("dx: ", len(d.x[d.nx:]), d.x[d.nx:])
 		d.nx += n
 		if d.nx == chunk {
 			fmt.Println("d.x: ", len(d.x[:]), d.x[:])
-			blockGeneric(d, d.x[:])
+			bgh(d, d.x[:])
 			d.nx = 0
 		} else {
 
 		}
 		p = p[n:]
 	}
-	if len(p) != 0 {
-		fmt.Println("zx:", len(p), p)
-	}
+	// if len(p) != 0 {
+	// 	fmt.Println("zx:", len(p), p)
+	// }
 	if len(p) >= chunk {
 		n := len(p) &^ (chunk - 1)
 		fmt.Println("n: ", n, p[:n]) //d.x[:],
-		blockGeneric(d, p[:n])
+		bgh(d, p[:n])
 		p = p[n:]
 		// fmt.Println("z:", len(p), p)
 	}
@@ -158,10 +159,10 @@ func (d *digest) checkSum() {
 	length <<= 3
 	padlen := tmp[:t+8]
 	binary.BigEndian.PutUint64(padlen[t+0:], length)
-	fmt.Println("Padlen:", len(padlen), padlen)
+	// fmt.Println("Padlen:", len(padlen), padlen)
 	//
 	d.Write(padlen)
-	
+
 	// if d.nx != 0 {
 	// 	panic("d.nx != 0")
 	// }
@@ -188,6 +189,7 @@ func Sum256(data []byte) string {
 	d.Write(data)
 	d.checkSum()
 	return ""
+	// return string(d.x)
 	// return d.checkSum()
 }
 

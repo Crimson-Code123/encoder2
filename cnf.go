@@ -17,6 +17,7 @@ type Clause struct {
 	Literals []int
 }
 
+
 /* Allocate variables in the formula */
 func (f *Formula) NewVars(varCount int, name string) []int {
 	x := make([]int, 0)
@@ -29,6 +30,17 @@ func (f *Formula) NewVars(varCount int, name string) []int {
 		f.VarName = append(f.VarName, name)
 	}
 	f.varCount += varCount
+	return x
+}
+
+func (f *Formula)NewVar(name string) int {
+	f.VarID += 1
+	x := f.VarID
+	if name != "" {
+		f.VarNames[name] = x
+		f.VarName = append(f.VarName, name)
+	}
+	f.varCount += 1
 	return x
 }
 
@@ -79,6 +91,26 @@ func (f *Formula) FixedValueBV(z int, val int) {
 	default:
 
 	}
+}
+
+/* Assign x to z */
+func (f *Formula) Assign(z []int, x []int, n int) []int {
+	return f.RotateL(z, x, 0, n)
+}
+
+/* Rotate x into z and return z */
+func (f *Formula) RotateR(z []int, x []int, p int, n int) []int {
+	r := make([]int, 0)
+	for i := 0; i < n; i++ {
+		z[i] = x[(i+n-p)%n]
+		r = append(r, z[i])
+	}
+	return r
+}
+
+func (f *Formula) RotateL(z []int, x []int, p int, n int) []int {
+	r := f.RotateR(z, x, n-p, n)
+	return r
 }
 
 /* Logic/arithmetic Functions */
@@ -256,26 +288,6 @@ func (f *Formula) NEqual(z []int, x []int, n int) {
 	}
 }
 
-/* Assign x to z */
-func (f *Formula) Assign(z []int, x []int, n int) []int {
-	return f.RotateL(z, x, 0, n)
-}
-
-/* Rotate x into z and return z */
-func (f *Formula) RotateR(z []int, x []int, p int, n int) []int {
-	r := make([]int, 0)
-	for i := 0; i < n; i++ {
-		z[i] = x[(i+n-p)%n]
-		r = append(r, z[i])
-	}
-	return r
-}
-
-func (f *Formula) RotateL(z []int, x []int, p int, n int) []int {
-	r := f.RotateR(z, x, n-p, n)
-	return r
-}
-
 /* sha256 sigma functions */
 
 func (f *Formula) Sigma0(z []int, x []int) {
@@ -352,12 +364,12 @@ func (f *Formula) AtMostK(x []int, n int, k uint) {
 		f.AddClauseVec([]int{-R[0][i]})
 	}
 	for i := 1; i < n-1; i++ {
-		for j := 1; k < k; j++ {
+		for j := 1; j < int(k); j++ {
 			f.AddClauseVec([]int{-R[i - 1][j], R[i][j]})
 		}
 	}
 	for i := 1; i < n-1; i++ {
-		for j := 1; k < k; j++ {
+		for j := 1; j < int(k); j++ {
 			f.AddClauseVec([]int{-x[i], -R[i - 1][j - 1], R[i][j]})
 		}
 	}

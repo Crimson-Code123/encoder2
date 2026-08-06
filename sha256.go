@@ -29,7 +29,6 @@ empty input
 [227 176 196 66 152 252 28 20 154 251 244 200 153 111 185 36 39 174 65 228 100 155 147 76 164 149 153 27 120 82 184 85] - checksum
 */
 
-
 /* Encode sha256 as CNF */
 func (h *Hash) Encode(j int, output bool) {
 	h.UseIVBlock = true
@@ -61,9 +60,9 @@ func (h *Hash) Encode(j int, output bool) {
 	h.SetOutput(output)
 }
 
-
 /* Fix the input bits and pad the input string into a bitvec */
 func (h *Hash) SetInput(s string, x int) {
+	//Pad input string
 	if padding {
 		h.Input = padded(s)
 	} else {
@@ -71,20 +70,31 @@ func (h *Hash) SetInput(s string, x int) {
 	}
 	h.FixedBits = len(h.Input) * 8
 	f := stringToBitVec(h.Input)
-	_ = f
-	//InputVars, todo? padded length
-	// h.P = make([][8]int, len(h.Input))
-	// for i := 0; i < len(h.P); i++ {
-	// h.P[i] = [8]int(h.F.NewVars(8, fmt.Sprintf("input%d%d", x, i)))
-	// }
-	//FixInput, works
-	for i := 0; i < h.FixedBits; i++ {
-		// r := i / 8
-		// c := i % 8
-		// h.F.FixedValueBV(h.P[r][c], f[i])
-		// h.F.FixedValueBV(h.out[r][c], random())
-		// h.F.FixedValue((h.W[r][c]), x>>c&1, 1)
+	if h.FixedBits != len(f) {
+		fmt.Println("", h.FixedBits, len(f))
 	}
+	//Create input vars
+	y := h.F.NewVars(len(f), fmt.Sprintf("input_%d", x))
+	// y := make([]int, len(f))
+	// for i := 0; i < len(y); i++ {
+	// 	y[i] = h.F.NewVar(fmt.Sprintf("input_%d", i))
+		// h.P[i] = h.F.NewVars(8, fmt.Sprintf("input%d%d", x, i))
+	// }
+	
+	//Fix input bits
+	for i := 0; i < len(f); i++ {
+		r := i / 32
+		c := i % 32
+		// fmt.Println(r, c)
+		_ = c
+		_ = r
+		// h.F.FixedValueBV(h.W[r][c], f[i])
+		h.F.FixedValueBV(y[i], f[i])
+		// h.F.FixedValueBV(h.P[r][c], f[i])
+		// h.F.FixedValue((h.W[r][c]), x>>c&1, 1)
+
+	}
+	//
 }
 
 /* Mix p values into w, padded as big endian */
@@ -180,7 +190,7 @@ func (h *Hash) Add() {
 /* Encode k values */
 func (h *Hash) EncodeConst(j int) {
 	for i := 0; i < 64; i++ {
-		h.K[i] = [32]int(h.F.NewVars(len(h.K[i]), fmt.Sprintf("k%d%d", i, j)))
+		h.K[i] = [32]int(h.F.NewVars(len(h.K[i]), fmt.Sprintf("k_%d_%d", i, j)))
 		h.F.FixedValue(arrConv(h.K[i]), _K[i], 32)
 	}
 }
@@ -188,17 +198,17 @@ func (h *Hash) EncodeConst(j int) {
 /* Init (chunk dependent) named cnf variables */
 func (h *Hash) InitVars(d int) {
 	for i := 0; i < h.Rounds; i++ {
-		h.W[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("w%d%d", i, d)))
+		h.W[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("w_%d_%d", i, d)))
 	}
 	for i := 0; i < 8; i++ {
-		h.chain[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("chain%d%d", i, d)))
+		h.chain[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("chain_%d_%d", i, d)))
 	}
 	for i := 0; i < 8; i++ {
-		h.tmp[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("tmp%d%d", i, d)))
+		h.tmp[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("tmp_%d_%d", i, d)))
 	}
 	for i := 0; i < 70; i++ {
-		h.A[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("a%d%d", i, d)))
-		h.E[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("e%d%d", i, d)))
+		h.A[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("a_%d_%d", i, d)))
+		h.E[i] = [32]int(h.F.NewVars(32, fmt.Sprintf("e_%d_%d", i, d)))
 	}
 }
 
@@ -291,7 +301,8 @@ func (h *Hash) MultiHash() {
 		} else {
 			h.Encode(i, false)
 		}
-		h.SetInput(h.Output, i)
+		// if 
+		// h.SetInput(h.Output, i)
 	}
 	// h.OutputVar()
 }
