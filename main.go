@@ -34,6 +34,7 @@ func main() {
 	} else {
 		initHash(r, 1)
 	}
+	
 	// listener()
 	// e := stringToBitVec(sha256sum(("123")))
 	// fmt.Println(e)
@@ -49,6 +50,7 @@ func initHash(input string, n int) {
 	h := NewSHA256(input, n)
 	// h.Encode(n)
 	h.MultiHash()
+	transform(h.F)
 	writeDIMACS("hash.dimacs", h.F)
 }
 

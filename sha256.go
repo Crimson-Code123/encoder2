@@ -29,32 +29,36 @@ empty input
 [227 176 196 66 152 252 28 20 154 251 244 200 153 111 185 36 39 174 65 228 100 155 147 76 164 149 153 27 120 82 184 85] - checksum
 */
 
+func (h *Hash) ChunkRound() {
+	if h.UseIVBlock {
+		h.EncodeIV()
+		h.UseIVBlock = false
+	}
+	if mixer1 {
+		for i := 0; i < 16; i++ {
+			h.Mixer1(i)
+		}
+	}
+	for i := 16; i < 64; i++ {
+		h.Mixer2(i)
+	}
+	h.AssignChain()
+	for i := 0; i < 64; i++ {
+		h.MainLoop(i)
+	}
+	//final addition
+	h.Add()
+}
+
 /* Encode sha256 as CNF */
 func (h *Hash) Encode(j int, output bool) {
 	h.UseIVBlock = true
+	h.InitVars(j)
 	// for chunk := 0; chunk>size; chunk += 64 {
-	// for len(h.P) >= h.ChunkSize*4 {
-	for x := 0; x < 1; x++ {
-		h.InitVars(j)
-		if h.UseIVBlock {
-			h.EncodeIV()
-			h.UseIVBlock = false
-		}
-		if mixer1 {
-			for i := 0; i < 16; i++ {
-				h.Mixer1(i)
-			}
-		}
-		for i := 16; i < 64; i++ {
-			h.Mixer2(i)
-		}
-		h.AssignChain()
-		for i := 0; i < 64; i++ {
-			h.MainLoop(i)
-		}
-		//final addition
-		h.Add()
-		// h.P = h.P[h.ChunkSize:]
+	for len(h.P) >= h.ChunkSize*4 {
+	// for x := 0; x < 1; x++ {
+		h.ChunkRound()
+		h.P = h.P[h.ChunkSize:]
 	}
 	//assign to output
 	h.SetOutput(output)
@@ -78,9 +82,8 @@ func (h *Hash) SetInput(s string, x int) {
 	// y := make([]int, len(f))
 	// for i := 0; i < len(y); i++ {
 	// 	y[i] = h.F.NewVar(fmt.Sprintf("input_%d", i))
-		// h.P[i] = h.F.NewVars(8, fmt.Sprintf("input%d%d", x, i))
+	// h.P[i] = h.F.NewVars(8, fmt.Sprintf("input%d%d", x, i))
 	// }
-	
 	//Fix input bits
 	for i := 0; i < len(f); i++ {
 		r := i / 32
@@ -92,7 +95,6 @@ func (h *Hash) SetInput(s string, x int) {
 		h.F.FixedValueBV(y[i], f[i])
 		// h.F.FixedValueBV(h.P[r][c], f[i])
 		// h.F.FixedValue((h.W[r][c]), x>>c&1, 1)
-
 	}
 	//
 }
@@ -301,7 +303,7 @@ func (h *Hash) MultiHash() {
 		} else {
 			h.Encode(i, false)
 		}
-		// if 
+		// if
 		// h.SetInput(h.Output, i)
 	}
 	// h.OutputVar()

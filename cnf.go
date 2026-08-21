@@ -17,7 +17,6 @@ type Clause struct {
 	Literals []int
 }
 
-
 /* Allocate variables in the formula */
 func (f *Formula) NewVars(varCount int, name string) []int {
 	x := make([]int, 0)
