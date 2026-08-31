@@ -37,32 +37,32 @@ func (g *Graph) AddClauseGadget(c Clause) {
 	// 	switch i {
 	// 	case 0:
 	// 	default:
-	// 		g.Connect(g.Nodes[g.NodeCount], g.Nodes[g.NodeCount-1])
+	// 		g.Connect(g.Nodes[g.Order], g.Nodes[g.Order-1])
 	// 	}
 	// 	if i == j {
 	// 	}
 	// }
-	// g.Connect(g.Nodes[g.NodeCount], g.Nodes[0])
-	// g.Connect(g.Nodes[g.NodeCount], g.Nodes[1])
+	// g.Connect(g.Nodes[g.Order], g.Nodes[0])
+	// g.Connect(g.Nodes[g.Order], g.Nodes[1])
 }
 
 /* Create a variable gadget */
 func (g *Graph) AddVarGadget(v int) {
 	g.AddNode(itoa(v))
-	if len(g.Nodes) == g.NodeCount {
+	if len(g.Nodes) == g.Order {
 		return
 	}
-	g.Connect(g.Nodes[g.NodeCount], g.Nodes[0])
+	g.Connect(g.Nodes[g.Order], g.Nodes[0])
 	g.AddNode(itoa(-v))
-	g.Connect(g.Nodes[g.NodeCount], g.Nodes[0])
-	g.Connect(g.Nodes[g.NodeCount], g.Nodes[g.NodeCount-1])
+	g.Connect(g.Nodes[g.Order], g.Nodes[0])
+	g.Connect(g.Nodes[g.Order], g.Nodes[g.Order-1])
 }
 
 /* append graph gx to g */
 func (g *Graph) AppendGraph(gx Graph) {
-	idx := g.NodeCount
+	idx := g.Order
 	_ = idx
-	for i := 0; i < gx.NodeCount; i++ {
+	for i := 0; i < gx.Order; i++ {
 
 	}
 }
