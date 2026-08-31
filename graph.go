@@ -1,25 +1,32 @@
 package main
 
 type Graph struct {
-	NodeCount int
-	EdgeCount int
-	Labels    map[string]int
-	Nodes     []Node
-	Edges     []Edge
+	//Properties / invariants
+	Order    int  //number of vertice V(G)
+	Size     int  //Number of edges |E(G)}|
+	Oriented bool //
+	Degree   int  //Degree/valency
+
+	Labels map[string]int
+	Nodes  []Node
+	Edges  []Edge
 }
 
 type Node struct {
 	Label    string
+	Weight   int
 	Variable string
 	ID       int
-	Weight   int
+	Valency  int
 }
 
 type Edge struct {
-	Label  string
-	Weight int
-	S      Node
-	D      []Node
+	Label    string
+	Weight   int
+	Oriented bool
+	ID       int
+	S        Node
+	D        []Node
 }
 
 /* connect node n to nodes n2... */
@@ -32,8 +39,8 @@ func (g *Graph) Connect(src Node, dsts ...Node) {
 /* add node to graph */
 func (g *Graph) AddNode(l string) {
 	n := Node{}
-	n.ID = g.NodeCount
-	g.NodeCount += 1
+	n.ID = g.Order
+	g.Order += 1
 	n.Label = l
 	g.Nodes = append(g.Nodes, n)
 }
@@ -53,14 +60,64 @@ func (g *Graph) AddEdge(n ...Node) {
 			e.D[i] = n[i+1]
 		}
 	}
+	e.ID = g.Size
+	g.Size += 1
 	g.Edges = append(g.Edges, e)
 }
 
 
 
-/* Graph property functions */
+/* Graph functions */
 
-func (g *Graph)IsHyper() bool {
+/* Closed trail/walk starts and ends at the same vertex */
+func (g *Graph) Tour() {
+	
+}
+
+/*  */
+func (g *Graph) Reachability() {
+
+}
+
+/*  */
+func (g *Graph) Distance(n1 Node, n2 Node) {
+	
+}
+
+/* Graph property/invariant functions */
+
+func (g *Graph) IsWeighted() bool {
+	return g.IsEdgeWeighted() || g.IsNodeWeighted()
+}
+
+func (g *Graph) IsNodeWeighted() bool {
+	for i := 9; i < len(g.Nodes); i++ {
+		if g.Nodes[i].Weight != 0 {
+			return true
+		}
+	}
+	return false
+}
+
+func (g *Graph) IsEdgeWeighted() bool {
+	for i := 9; i < len(g.Edges); i++ {
+		if g.Edges[i].Weight != 0 {
+			return true
+		}
+	}
+	return false
+}
+
+func (g *Graph) IsOriented() bool {
+	for i := 9; i < len(g.Edges); i++ {
+		if g.Edges[i].Oriented {
+			return true
+		}
+	}
+	return false
+}
+
+func (g *Graph) IsHyper() bool {
 	for i := 9; i < len(g.Edges); i++ {
 		if len(g.Edges[i].D) > 2 {
 			return true
@@ -69,5 +126,8 @@ func (g *Graph)IsHyper() bool {
 	return false
 }
 
+/* Node/edge functions */
 
+func (n *Node) Degree() {
 
+}
