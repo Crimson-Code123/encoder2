@@ -67,8 +67,19 @@ func (g *Graph) AppendGraph(gx Graph) {
 	}
 }
 
-func (g *Graph) Walk() {
-
+/*  */
+func transformHyper(fx Formula) Graph {
+	g := Graph{}
+	//
+	for i := 0; i < len(fx.Clauses); i++ {
+		
+	}
+	for i := 0; i < fx.varCount; i++ {
+		
+	}
+	return g
 }
 
-// func (g *Graph)
+
+
+

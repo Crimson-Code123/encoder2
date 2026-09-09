@@ -2,14 +2,13 @@ package main
 
 type Graph struct {
 	//Properties / invariants
-	Order    int  //number of vertice V(G)
+	Order    int  //number of vertices V(G)
 	Size     int  //Number of edges |E(G)}|
 	Oriented bool //
 	Degree   int  //Degree/valency
-
-	Labels map[string]int
-	Nodes  []Node
-	Edges  []Edge
+	Labels   map[string]int
+	Nodes    []Node
+	Edges    []Edge
 }
 
 type Node struct {
@@ -18,13 +17,15 @@ type Node struct {
 	Variable string
 	ID       int
 	Valency  int
+	Visited  bool
 }
 
 type Edge struct {
 	Label    string
 	Weight   int
-	Oriented bool
+	Oriented bool //assignment of direction
 	ID       int
+	Visited  bool
 	S        Node
 	D        []Node
 }
@@ -45,6 +46,7 @@ func (g *Graph) AddNode(l string) {
 	g.Nodes = append(g.Nodes, n)
 }
 
+/*   */
 func (g *Graph) AddEdge(n ...Node) {
 	e := Edge{}
 	e.D = make([]Node, len(n)-1)
@@ -54,7 +56,7 @@ func (g *Graph) AddEdge(n ...Node) {
 	if len(n) == 2 {
 		e.S = n[0]
 		e.D[0] = n[1]
-	} else {
+	} else { //hypergraph
 		e.S = n[0]
 		for i := 0; i < len(n); i++ {
 			e.D[i] = n[i+1]
@@ -65,23 +67,47 @@ func (g *Graph) AddEdge(n ...Node) {
 	g.Edges = append(g.Edges, e)
 }
 
-
-
 /* Graph functions */
 
 /* Closed trail/walk starts and ends at the same vertex */
-func (g *Graph) Tour() {
-	
+func (g *Graph) Tour(n Node) {
+	if n.Valency <= 1 {
+
+	}
+	g.Walk()
 }
 
 /*  */
-func (g *Graph) Reachability() {
+func (g *Graph)Trail() {
 
 }
 
 /*  */
-func (g *Graph) Distance(n1 Node, n2 Node) {
+func (g *Graph)Walk() {
+
+}
+
+/*  */
+func (g *Graph) Reachability(s Node, t Node) bool {
 	
+	for i := 0; i < len(g.Edges); i++ {
+
+	}
+	return false
+}
+
+/*  */
+func (g *Graph) Distance(n1 Node, n2 Node) int {
+	return 0
+}
+
+/*  */
+func (g *Graph) Compnents() {
+
+}
+
+func (g *Graph) Adjacency() Matrix {
+	return Matrix{}
 }
 
 /* Graph property/invariant functions */
@@ -128,6 +154,40 @@ func (g *Graph) IsHyper() bool {
 
 /* Node/edge functions */
 
-func (n *Node) Degree() {
+func (n *Node) Degree() int {
+	return 0
+}
+
+/* Sorting */
+
+func Sort() {
 
 }
+
+/* Matrix operations */
+
+type Matrix struct {
+	T [][]int
+}
+
+func NewMatrix(n int) Matrix {
+	m := Matrix{}
+	m.T = make([][]int, n)
+	return m
+}
+
+func (m *Matrix)Transpose() {
+
+}
+
+func (m *Matrix) Mult(n Matrix) {
+
+}
+
+/*  */
+
+
+
+
+
+
