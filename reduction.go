@@ -15,9 +15,8 @@ func transform(fx Formula) Graph {
 	for i := 0; i < fx.VarCount(); i++ {
 		// g.AddVarGadget(i + 1)
 	}
-	fmt.Println("Clauses:", fx.Clauses)
+	// fmt.Println("Clauses:", fx.Clauses)
 	for i := 0; i < len(fx.Clauses); i++ {
-		
 		g.AddClauseGadget(fx.Clauses[i])
 	}
 	return g
@@ -63,7 +62,7 @@ func (g *Graph) AppendGraph(gx Graph) {
 	idx := g.Order
 	_ = idx
 	for i := 0; i < gx.Order; i++ {
-
+		
 	}
 }
 
@@ -83,3 +82,14 @@ func transformHyper(fx Formula) Graph {
 
 
 
+/* 
+
+type Hgraph struct {
+	X []clauses
+	Y map[clause_id][]appearances_int
+	Z [][]int //
+	
+	:
+}
+
+ */

@@ -5,17 +5,40 @@ import "fmt"
 /* CNF-related stuff */
 
 type Formula struct {
-	Clauses  []Clause
-	VarNames map[string]int
-	VarName  []string //list for ordered output in dimacs
-	Vars     map[int]int
-	VarID    int
-	varCount int
+	Clauses      []Clause
+	VarToClauses map[int][]Clause //
+	VarNames     map[string]int
+	VarName      []string //list for ordered output in dimacs
+	VarID        int
+	varCount     int
 }
 
 type Clause struct {
 	Literals []int
 }
+
+func (f *Formula) Fill() {
+	for i := 0; i < len(f.Clauses); i++ {
+		for j := 0; j < len(f.Clauses[i].Literals); j++ {
+			f.VarToClauses[f.Clauses[i].Literals[j]] = make([]Clause, 0)
+		}
+	}
+	for i := 0; i < len(f.Clauses); i++ {
+		for j := 0; j < len(f.Clauses[i].Literals); j++ {
+			l := f.VarToClauses[f.Clauses[i].Literals[j]]
+
+			l = append(l, f.Clauses[i])
+			
+			f.VarToClauses[f.Clauses[i].Literals[j]] = l
+		}
+	}
+}
+
+func (f *Formula)f() {
+	
+}
+
+// func (f *Formula)Find
 
 /* Allocate variables in the formula */
 func (f *Formula) NewVars(varCount int, name string) []int {
@@ -32,7 +55,7 @@ func (f *Formula) NewVars(varCount int, name string) []int {
 	return x
 }
 
-func (f *Formula)NewVar(name string) int {
+func (f *Formula) NewVar(name string) int {
 	f.VarID += 1
 	x := f.VarID
 	if name != "" {
@@ -364,16 +387,16 @@ func (f *Formula) AtMostK(x []int, n int, k uint) {
 	}
 	for i := 1; i < n-1; i++ {
 		for j := 1; j < int(k); j++ {
-			f.AddClauseVec([]int{-R[i - 1][j], R[i][j]})
+			f.AddClauseVec([]int{-R[i-1][j], R[i][j]})
 		}
 	}
 	for i := 1; i < n-1; i++ {
 		for j := 1; j < int(k); j++ {
-			f.AddClauseVec([]int{-x[i], -R[i - 1][j - 1], R[i][j]})
+			f.AddClauseVec([]int{-x[i], -R[i-1][j-1], R[i][j]})
 		}
 	}
 	for i := 1; i < n-1; i++ {
-		f.AddClauseVec([]int{-x[i], -R[i - 1][k - 1]})
+		f.AddClauseVec([]int{-x[i], -R[i-1][k-1]})
 	}
 }
 

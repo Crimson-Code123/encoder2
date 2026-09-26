@@ -43,13 +43,15 @@ func main() {
 	// go server()
 	// for {
 	// 	time.Sleep(time.Second * 10)
-	// }
+	// }]
 }
 
 func initHash(input string, n int) {
 	h := NewSHA256(input, n)
 	// h.Encode(n)
 	h.MultiHash()
+	h.F.Fill()
+	fmt.Println(h.F.VarToClauses)
 	transform(h.F)
 	writeDIMACS("hash.dimacs", h.F)
 }

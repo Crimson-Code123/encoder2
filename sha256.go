@@ -315,6 +315,7 @@ func NewSHA256(input string, n int) Hash {
 	h.Rounds = 64
 	h.ChunkSize = 16
 	h.F = NewFormula()
+	h.F.VarToClauses = make(map[int][]Clause)
 	h.EncodeConst(0)
 	// h.Input = input
 	// h.FixedBits = len(input) * 8
