@@ -55,10 +55,11 @@ func (h *Hash) Encode(j int, output bool) {
 	h.UseIVBlock = true
 	h.InitVars(j)
 	// for chunk := 0; chunk>size; chunk += 64 {
-	for len(h.P) >= h.ChunkSize*4 {
-	// for x := 0; x < 1; x++ {
+	// for len(h.P) >= h.ChunkSize*4 {
+	for x := 0; x < 1; x++ {
+		// fmt.Println("")
 		h.ChunkRound()
-		h.P = h.P[h.ChunkSize:]
+		// h.P = h.P[h.ChunkSize:]
 	}
 	//assign to output
 	h.SetOutput(output)

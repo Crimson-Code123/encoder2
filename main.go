@@ -7,13 +7,13 @@ import (
 
 /*
 
-*/
+ */
 
 var (
 	debug   = false
 	mixer1  = false
 	padding = false
-	r = "12345678"
+	r       = "12345678"
 	// r = "1234567812345678123456781234567812345678123456781234567812345678"
 )
 
@@ -32,9 +32,8 @@ func main() {
 		fmt.Scanln("%s", x)
 		initHash(x, 2)
 	} else {
-		initHash(r, 1)
+		initHash(r, 2)
 	}
-	
 	// listener()
 	// e := stringToBitVec(sha256sum(("123")))
 	// fmt.Println(e)
@@ -51,8 +50,23 @@ func initHash(input string, n int) {
 	// h.Encode(n)
 	h.MultiHash()
 	h.F.Fill()
-	fmt.Println(h.F.VarToClauses)
-	transform(h.F)
+	// h.F.Fill()
+	// fmt.Println(h.F.VarToClauses)
+	for h, g := range h.F.VarToClauses {
+		_ = h
+		// fmt.Println("Var:", h)
+		if h == 63 || h == -63 {
+			for i := 0; i < len(g); i++ {
+				// if len(g) == 1 {
+				fmt.Println("C:", g[i])
+				// }
+			}
+		}
+	}
+	
+	g := transform(h.F)
+	fmt.Println("")
+	g.Tour(g.Nodes[0])
 	writeDIMACS("hash.dimacs", h.F)
 }
 
@@ -69,7 +83,3 @@ func server() {
 	}
 	fmt.Printf("N: %d | X: %s\n", n, x)
 }
-
-
-
-

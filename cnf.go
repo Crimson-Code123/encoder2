@@ -18,9 +18,11 @@ type Clause struct {
 }
 
 func (f *Formula) Fill() {
-	for i := 0; i < len(f.Clauses); i++ {
-		for j := 0; j < len(f.Clauses[i].Literals); j++ {
-			f.VarToClauses[f.Clauses[i].Literals[j]] = make([]Clause, 0)
+	if len(f.VarToClauses) == 0 {
+		for i := 0; i < len(f.Clauses); i++ {
+			for j := 0; j < len(f.Clauses[i].Literals); j++ {
+				f.VarToClauses[f.Clauses[i].Literals[j]] = make([]Clause, 0)
+			}
 		}
 	}
 	for i := 0; i < len(f.Clauses); i++ {
@@ -28,14 +30,14 @@ func (f *Formula) Fill() {
 			l := f.VarToClauses[f.Clauses[i].Literals[j]]
 
 			l = append(l, f.Clauses[i])
-			
+
 			f.VarToClauses[f.Clauses[i].Literals[j]] = l
 		}
 	}
 }
 
-func (f *Formula)f() {
-	
+func (f *Formula) f() {
+
 }
 
 // func (f *Formula)Find
@@ -69,10 +71,10 @@ func (f *Formula) NewVar(name string) int {
 /* Encode input value bits as cnf variables */
 func (f *Formula) FixedValue(z []int, value uint32, n int) {
 	/*
-			for (int i = 0; i < n; i++) {
-		        int x = (value >> i) & 1 ? z[i] : -z[i];
-		        addClause({ x });
-		    }
+		for (int i = 0; i < n; i++) {
+			int x = (value >> i) & 1 ? z[i] : -z[i];
+			addClause({ x });
+		}
 	*/
 	// fmt.Println(value, z)
 	for i := 0; i < n; i++ {
@@ -208,9 +210,9 @@ func (f *Formula) And2(z []int, x []int, y []int, n int) {
 }
 
 func (f *Formula) Or2(z []int, x []int, y []int, n int) {
-	// if debug {
-	// 	fmt.Println("Or2:", z, x, y)
-	// }
+	if debug && z[0] == 0 || x[0] == 0 || y[0] == 0 {
+		fmt.Println("Or2:", z, x, y)
+	}
 	for i := 0; i < n; i++ {
 		f.AddClauseVec([]int{-z[i], x[i], y[i]})
 		f.AddClauseVec([]int{z[i], -x[i]})

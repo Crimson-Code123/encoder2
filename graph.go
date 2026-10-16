@@ -1,5 +1,11 @@
 package main
 
+import (
+	"container/list"
+	"fmt"
+	"reflect"
+)
+
 type Graph struct {
 	//Properties / invariants
 	Order    int  //number of vertices V(G)
@@ -74,22 +80,26 @@ func (g *Graph) Tour(n Node) {
 	if n.Valency <= 1 {
 
 	}
-	g.Walk()
+	l := g.DLL()
+	for e := l.Front(); e != nil; e = e.Next() {
+		t := reflect.TypeOf(e.Value)
+		fmt.Println(t.Name(), t)
+		fmt.Println(e.Value)
+	}
 }
 
 /*  */
-func (g *Graph)Trail() {
+func (g *Graph) Trail() {
 
 }
 
 /*  */
-func (g *Graph)Walk() {
+func (g *Graph) Walk() {
 
 }
 
 /*  */
 func (g *Graph) Reachability(s Node, t Node) bool {
-	
 	for i := 0; i < len(g.Edges); i++ {
 
 	}
@@ -102,12 +112,17 @@ func (g *Graph) Distance(n1 Node, n2 Node) int {
 }
 
 /*  */
-func (g *Graph) Compnents() {
+func (g *Graph) Components() {
 
 }
 
 func (g *Graph) Adjacency() Matrix {
 	return Matrix{}
+}
+
+/*  */
+func (g *Graph) MaximumMatching() {
+
 }
 
 /* Graph property/invariant functions */
@@ -176,7 +191,7 @@ func NewMatrix(n int) Matrix {
 	return m
 }
 
-func (m *Matrix)Transpose() {
+func (m *Matrix) Transpose() {
 
 }
 
@@ -186,8 +201,10 @@ func (m *Matrix) Mult(n Matrix) {
 
 /*  */
 
-
-
-
-
-
+func (g *Graph) DLL() *list.List {
+	l := list.New()
+	for i := 0; i < len(g.Edges); i++ {
+		l.PushBack(g.Edges[i])
+	}
+	return l
+}

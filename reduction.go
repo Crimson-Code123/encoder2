@@ -12,6 +12,7 @@ func transform(fx Formula) Graph {
 	g.AddNode("Ground")
 	g.AddNode("False")
 	g.Connect(g.Nodes[0], g.Nodes[1])
+	return g
 	for i := 0; i < fx.VarCount(); i++ {
 		// g.AddVarGadget(i + 1)
 	}
